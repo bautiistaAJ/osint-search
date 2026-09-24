@@ -23,7 +23,7 @@ const buildGraph = (results, queryType, queryValue) => {
     label: queryValue,
     group: queryType,
     color: { color: '#00ffff', highlight: '#00ffff', border: '#00ffff' },
-    shape: 'circularImage',
+    shape: 'circle',
     font: { color: '#00ffff', size: 16, face: 'Share Tech Mono' }
   })
 
@@ -88,15 +88,15 @@ const buildGraph = (results, queryType, queryValue) => {
     layout: {
       improvedLayout: true
     },
-    interaction: {
-      tooltip: {
-        font: { face: 'Share Tech Mono', size: 11 },
-        borderColor: '#334155',
-        background: '#1e293b',
-        color: '#e2e8f0'
-      }
+tooltip: {
+      font: { face: 'Share Tech Mono', size: 11 },
+      borderColor: '#334155',
+      background: '#1e293b',
+      color: '#e2e8f0'
     }
-  }
+  },
+  interaction: {}
+}
 
   if (network) {
     network.destroy()
