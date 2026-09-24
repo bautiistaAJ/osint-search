@@ -37,7 +37,7 @@ Buscador OSINT personalizado con interfaz cyberpunk en español.
 
 ```bash
 # 1. Instalar dependencias del sistema
-sudo apt install python3-pip nodejs npm docker.io docker-compose
+sudo apt install python3-pip python3-full python3-venv nodejs npm docker.io docker-compose
 
 # 2. Clonar el proyecto
 git clone <repo> osint-search-es
@@ -48,13 +48,13 @@ chmod +x install_kali.sh
 ./install_kali.sh
 
 # 4. Ejecutar el backend
-cd backend && python main.py
+cd backend && python3 main.py
 
 # 5. Ejecutar el frontend (en otra terminal)
 cd frontend && npm run dev
 ```
 
-> **Nota**: Kali moderno usa PEP 668 (entornos externamente gestionados). El script `install_kali.sh` incluye `--break-system-packages` para `pip`. Si instalas manualmente, usa `pip install --break-system-packages <paquete>`.
+> **Nota**: Kali moderno usa PEP 668 (entornos externamente gestionados). El script `install_kali.sh` usa `python3 -m pip --break-system-packages`. Si instalas manualmente, usa `python3 -m pip install --break-system-packages <paquete>`.
 
 ## Con Docker Compose
 
