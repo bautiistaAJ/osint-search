@@ -1,8 +1,8 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { Network } from 'vis-network/standalone/esm/vis-network'
+import { Network } from 'vis-network/standalone'
 import 'vis-network/styles/vis-network.css'
-import { DataSet } from 'vis-data/peer/esm/vis-data'
+import { DataSet } from 'vis-data/peer'
 
 const props = defineProps({
   results: { type: Array, default: () => [] },
