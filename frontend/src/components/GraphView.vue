@@ -88,12 +88,6 @@ const buildGraph = (results, queryType, queryValue) => {
     layout: {
       improvedLayout: true
     },
-tooltip: {
-      font: { face: 'Share Tech Mono', size: 11 },
-      borderColor: '#334155',
-      background: '#1e293b',
-      color: '#e2e8f0'
-    },
     interaction: {}
   }
 
