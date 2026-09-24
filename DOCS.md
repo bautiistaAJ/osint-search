@@ -35,7 +35,7 @@ Frontend (5173)  →  /api/search/...  →  Vite Proxy  →  Backend (8000)
 chmod +x install_kali.sh
 ./install_kali.sh
 ```
-> **Nota**: En Kali moderno (PEP 668), el script usa `--break-system-packages`. Si falla, verifica que `python3-pip`, `nodejs`, `npm`, `docker.io` y `docker-compose` estén instalados.
+> **Nota**: En Kali moderno (PEP 668), el script crea un entorno virtual (`venv`) para evitar el error. El repositorio es `https://github.com/bautiistaAJ/osint-search.git`.
 
 ### Opción 2: Docker Compose
 ```bash
@@ -52,7 +52,7 @@ cd backend
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python main.py
+python3 main.py
 
 # Terminal 2 — Frontend
 cd frontend
@@ -419,7 +419,7 @@ which maigret  # Verificar que está en el PATH
 **Solución**:
 ```bash
 cd backend
-python main.py
+python3 main.py
 # Verificar en http://localhost:8000/docs
 ```
 
@@ -468,7 +468,7 @@ docker-compose up --build
 ## 📂 Estructura del proyecto
 
 ```
-osint-search-es/
+osint-search/
 ├── backend/
 │   ├── main.py              # API FastAPI v2.0
 │   ├── models/
@@ -479,6 +479,7 @@ osint-search-es/
 │   │   └── osint_services.py # PhoneInfoga, GHunt, sublist3r, theHarvester, DNS, GitHub
 │   ├── requirements.txt     # Dependencias Python
 │   ├── osint_search.db      # Base de datos SQLite (se crea al ejecutar)
+│   ├── venv/                # Entorno virtual Python
 │   └── Dockerfile
 ├── frontend/
 │   ├── src/
@@ -495,7 +496,7 @@ osint-search-es/
 │   ├── vite.config.js       # Proxy /api → localhost:8000
 │   └── Dockerfile
 ├── docker-compose.yml
-├── install_kali.sh          # Script de instalación para Kali
+├── install_kali.sh          # Script de instalacion para Kali
 ├── README.md
 ├── DOCS.md                  # Este archivo
 └── AGENTS.md                # Instrucciones para OpenCode
@@ -524,7 +525,7 @@ osint-search-es/
 ## 📖 Recursos adicionales
 
 - **Swagger UI**: http://localhost:8000/docs
-- **Repositorio**: https://github.com/tu-usuario/osint-search-es
+- **Repositorio**: https://github.com/bautiistaAJ/osint-search
 - **Licencia**: MIT
 
 ---
