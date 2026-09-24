@@ -27,7 +27,6 @@ const props = defineProps({
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 .status-found { color: #00ff00; font-family: var(--font-mono); font-size: 0.7rem; font-weight: bold; letter-spacing: 1px; }
 .status-notfound { color: #64748b; font-family: var(--font-mono); font-size: 0.7rem; font-weight: bold; letter-spacing: 1px; }
 </style>

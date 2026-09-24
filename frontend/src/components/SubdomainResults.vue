@@ -41,5 +41,4 @@ function getDisplay() {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 </style>

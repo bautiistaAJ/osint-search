@@ -28,5 +28,4 @@ const recordTypes = ['A', 'AAAA', 'MX', 'TXT', 'NS', 'CNAME', 'CAA', 'SOA']
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 </style>

@@ -25,9 +25,12 @@ const loading = ref(false)
 const error = ref('')
 const showGraph = ref(false)
 const searched = ref(false)
+const viewMode = ref('graph')
 const total = computed(() => results.value.length)
 const scanSteps = ref([])
 const currentStep = ref(-1)
+
+const GRAPH_TYPES = ['username', 'email']
 
 const scanStepLabels = {
   username: ['Running maigret...', 'Running whatsmyname...', 'Merging results'],
@@ -55,6 +58,7 @@ async function search() {
   dnsFound.value = false
   githubData.value = null
   searched.value = true
+  viewMode.value = 'graph'
   currentStep.value = -1
   scanSteps.value = scanStepLabels[queryType.value] || ['Searching...']
   try {
@@ -93,7 +97,26 @@ async function processResponse(data) {
     githubData.value = (typeof data.results === 'object' && !Array.isArray(data.results) && data.results.login) ? data.results : null
   }
 
-  showGraph.value = Array.isArray(results.value) && results.value.length > 0
+  showGraph.value =
+    GRAPH_TYPES.includes(queryType.value) &&
+    Array.isArray(data.results) &&
+    results.value.length > 0
+}
+
+function onTypeChange() {
+  query.value = ''
+  results.value = []
+  showGraph.value = false
+  searched.value = false
+  error.value = ''
+  breachData.value = null
+  rawData.value = ''
+  rawFound.value = false
+  dnsRecords.value = {}
+  dnsError.value = ''
+  dnsFound.value = false
+  githubData.value = null
+  viewMode.value = 'graph'
 }
 
 function getEndpoint(type) {
@@ -109,17 +132,6 @@ function getEndpoint(type) {
     github: '/api/search/github'
   }
   return map[type] || '/api/search/username'
-}
-
-function formatResult(r) {
-  if (typeof r === 'string') return r
-  if (!r || typeof r !== 'object') return 'Resultado'
-  return r.site || r.username || r.url || r.email || r.login || r.name || 'Resultado'
-}
-
-function getUrl(r) {
-  if (!r || typeof r !== 'object') return ''
-  return r.url || r.site_url || r.profile_url || r.html_url || ''
 }
 
 function getPlaceholder(type) {
@@ -153,7 +165,7 @@ function isGithubType() {
 <template>
   <div class="search-section">
     <div class="search-box">
-      <select v-model="queryType" class="cyber-select" @change="query = ''">
+      <select v-model="queryType" class="cyber-select" @change="onTypeChange">
         <option value="username">👤 USUARIO / HANDLE</option>
         <option value="email">📧 EMAIL</option>
         <option value="domain">🌐 DOMINIO</option>
@@ -178,10 +190,6 @@ function isGithubType() {
 
     <div v-if="error" class="cyber-error">{{ error }}</div>
 
-    <div v-if="showGraph && results.length > 0" class="graph-section">
-      <GraphView :results="results" :queryType="queryType" :queryValue="query" />
-    </div>
-
     <ScanConsole
       v-if="loading && scanSteps.length > 0"
       :steps="scanSteps"
@@ -189,50 +197,59 @@ function isGithubType() {
       :queryType="queryType"
     />
 
-    <div v-if="searched && !loading && !showGraph && isRawType() && rawData" class="results">
-      <h2 class="section-title">RAW OUTPUT</h2>
-      <TerminalView :raw="rawData" :path="query" :title="queryType.toUpperCase()" />
-    </div>
+    <div v-if="searched && !loading && !error" class="results-block">
+      <div v-if="showGraph" class="graph-section">
+        <div class="view-toggle">
+          <button :class="{ active: viewMode === 'graph' }" @click="viewMode = 'graph'">◧ GRAPH</button>
+          <button :class="{ active: viewMode === 'list' }" @click="viewMode = 'list'">☰ LIST</button>
+        </div>
+        <div v-show="viewMode === 'graph'" class="graph-frame">
+          <GraphView :results="results" :queryType="queryType" :queryValue="query" />
+        </div>
+        <div v-show="viewMode === 'list'" class="results">
+          <UsernameResults v-if="queryType === 'username'" :results="results" :total="total" />
+          <EmailResults v-else :results="results" :breachData="breachData" />
+        </div>
+      </div>
 
-    <div v-else-if="searched && !loading && !showGraph && isRawType() && !rawData" class="results">
-      <h2 class="section-title">RESULTADOS</h2>
-      <PhoneDossier v-if="queryType === 'phone'" :raw="rawData" :found="rawFound" />
-      <SubdomainResults v-else-if="queryType === 'subdomains' || queryType === 'harvest'" :results="results" :raw="rawData" />
-      <TerminalView v-else-if="queryType === 'google'" :raw="rawData" :path="query" :title="queryType.toUpperCase()" />
-      <TerminalView v-else-if="queryType === 'domain'" :raw="rawData" :path="query" :title="queryType.toUpperCase()" />
-      <div v-else class="empty-state">No results found.</div>
-    </div>
+      <div v-else-if="isRawType() && rawData" class="results">
+        <h2 class="section-title">RAW OUTPUT</h2>
+        <PhoneDossier v-if="queryType === 'phone'" :raw="rawData" :found="rawFound" />
+        <SubdomainResults v-else-if="queryType === 'subdomains' || queryType === 'harvest'" :results="results" :raw="rawData" />
+        <TerminalView v-else :raw="rawData" :path="query" :title="queryType.toUpperCase()" />
+      </div>
 
-    <div v-else-if="searched && !loading && !showGraph && isDnsType()" class="results">
-      <h2 class="section-title">RESULTADOS</h2>
-      <DnsResults :records="dnsRecords" :error="dnsError" :found="dnsFound" />
-    </div>
+      <div v-else-if="isRawType()" class="results">
+        <h2 class="section-title">RESULTADOS</h2>
+        <PhoneDossier v-if="queryType === 'phone'" :raw="rawData" :found="rawFound" />
+        <SubdomainResults v-else-if="queryType === 'subdomains' || queryType === 'harvest'" :results="results" :raw="rawData" />
+        <TerminalView v-else :raw="rawData" :path="query" :title="queryType.toUpperCase()" />
+      </div>
 
-    <div v-else-if="searched && !loading && !showGraph && isGithubType()" class="results">
-      <h2 class="section-title">RESULTADOS</h2>
-      <GithubDossier :data="githubData" :raw="rawData" />
-    </div>
+      <div v-else-if="isDnsType()" class="results">
+        <h2 class="section-title">RESULTADOS</h2>
+        <DnsResults :records="dnsRecords" :error="dnsError" :found="dnsFound" />
+      </div>
 
-    <div v-else-if="searched && !loading && !showGraph && queryType === 'email' && results.length === 0 && breachData" class="results">
-      <h2 class="section-title">EMAIL / BREACHES</h2>
-      <EmailResults :results="results" :breachData="breachData" />
-    </div>
+      <div v-else-if="isGithubType()" class="results">
+        <h2 class="section-title">RESULTADOS</h2>
+        <GithubDossier :data="githubData" :raw="rawData" />
+      </div>
 
-    <div v-else-if="searched && !loading && !showGraph && queryType === 'username' && results.length > 0" class="results">
-      <h2 class="section-title">RESULTADOS</h2>
-      <UsernameResults :results="results" :total="total" />
-    </div>
+      <div v-else-if="queryType === 'email'" class="results">
+        <h2 class="section-title">EMAIL / BREACHES</h2>
+        <EmailResults :results="results" :breachData="breachData" />
+      </div>
 
-    <div v-if="searched && !loading && !showGraph && results.length === 0 && !error && !rawData && !isRawType() && !isDnsType() && !isGithubType()" class="results">
-      <h2 class="section-title">RESULTADOS</h2>
-      <p class="no-results">Sin resultados encontrados.</p>
+      <div v-else class="results">
+        <h2 class="section-title">RESULTADOS</h2>
+        <p class="no-results">Sin resultados encontrados.</p>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-
 .search-section { max-width: 1000px; margin: 0 auto; }
 
 .search-box { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
@@ -248,8 +265,35 @@ function isGithubType() {
 }
 
 .results { margin-top: 20px; }
+.results-block { margin-top: 20px; }
 
-.graph-section { margin-top: 20px; }
+.graph-section { display: flex; flex-direction: column; }
+.graph-frame { height: clamp(400px, 60vh, 700px); }
+
+.view-toggle {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0;
+  margin-bottom: 10px;
+}
+.view-toggle button {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.view-toggle button + button { border-left: none; }
+.view-toggle button.active {
+  background: var(--cyan);
+  color: var(--bg-primary);
+  border-color: var(--cyan);
+  box-shadow: var(--glow-cyan);
+}
 
 .no-results { color: var(--text-muted); font-family: var(--font-mono); font-size: 1rem; }
 </style>

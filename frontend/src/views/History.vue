@@ -86,7 +86,6 @@ onMounted(loadHistory)
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
 .cyber-body { background: var(--bg-primary); min-height: 100vh; position: relative; }
 .container { max-width: 900px; margin: 0 auto; padding: var(--spacing-md); position: relative; z-index: 1; }

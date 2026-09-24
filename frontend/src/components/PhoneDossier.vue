@@ -48,7 +48,6 @@ metrics.value = parseMetrics(props.raw)
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 .phone-metric-label { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.8rem; }
 .phone-metric-value { color: var(--text-primary); font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; }
 </style>

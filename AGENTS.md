@@ -46,9 +46,14 @@ chmod +x install_kali.sh && ./install_kali.sh
 
 ## Known Gotchas (Frontend)
 
-- vis-network 10.x: no top-level `levels` option (use `layout.hierarchical` instead). `hoverNode` event params use `params.node` (singular), NOT `params.nodes`.
+- vis-network 10.x: no top-level `levels` option (use `layout.hierarchical` instead). `hoverNode` event params use `params.node` (singular), NOT `params.nodes`. Never open URLs on `hoverNode` — only on `click`.
 - Vue `<script setup>`: `defineProps`/`defineEmits` are compiler macros — do NOT import them. `ref`/`computed` MUST be imported.
-- Backend `/api/history` and `/api/favorites` rows converted with `{k: r[k] for k in r.keys()}` (aiosqlite.Row), wrapped in try/except returning `[]`.
+- Backend `/api/history` and `/api/favorites` rows converted with `{k: r[k] for k in r.keys()}` (aiosqliteRow), wrapped in try/except returning `[]`.
+- Graph render rule: `showGraph` is ONLY set for GRAPH_TYPES (`username`, `email`) with array results — dict-shaped types (dns, github, phone, google, domain, subdomains, harvest) must render their own components. Backend dicts get wrapped into 1-element arrays in `processResponse`, so never gate the graph on `results.length > 0` alone.
+- Home.vue results chain: one wrapper `v-if="searched && !loading && !error"` contains a single `v-if/v-else-if` chain (graph → raw → dns → github → email → empty). Keep ScanConsole and the error banner as separate `v-if`s BEFORE the wrapper; do not insert siblings between chain branches (Vue attaches `v-else-if` to the nearest preceding `v-if` sibling).
+- GRAPH/LIST toggle: `viewMode` ref in Home.vue; GraphView stays mounted via `v-show` so the network is not rebuilt on toggle. Reset `viewMode='graph'` on each new search and type change (`onTypeChange`).
+- Google Fonts: single `<link>` in `index.html` — do NOT add `@import url(...)` in component `<style>` blocks (there were 11 duplicates, all removed).
+- `.status-badge` and `@keyframes pulse` live in `src/style.css` (not in dead `tokens.css`). Graph CSS lives only in GraphView.vue scoped styles — do not duplicate in style.css.
 
 ## API Reference
 
