@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, onUnmounted } from 'vue'
 import { Network } from 'vis-network/standalone'
 import 'vis-network/styles/vis-network.css'
 import { DataSet } from 'vis-data/peer'
@@ -17,14 +17,14 @@ const buildGraph = (results, queryType, queryValue) => {
   const nodes = new DataSet()
   const edges = new DataSet()
 
-  // Central node - the searched entity
   nodes.add({
     id: 'search',
-    label: queryValue,
+    label: queryValue || 'search',
     group: queryType,
     color: { color: '#00ffff', highlight: '#00ffff', border: '#00ffff' },
     shape: 'circle',
-    font: { color: '#00ffff', size: 16, face: 'Share Tech Mono' }
+    font: { color: '#00ffff', size: 16, face: 'Share Tech Mono' },
+    title: queryValue || 'search'
   })
 
   const groupColors = {
@@ -33,11 +33,13 @@ const buildGraph = (results, queryType, queryValue) => {
     domain: { color: '#00ff00', highlight: '#00ff00', border: '#00ff00' }
   }
 
-  if (results && results.length > 0) {
+  if (results && Array.isArray(results)) {
     results.forEach((r, i) => {
+      if (!r || typeof r !== 'object') return
       const id = `node_${i}`
-      const siteName = r.site || r.username || r.url || 'Unknown'
-      const url = r.url || r.site_url || ''
+      const siteName = String(r.site || r.username || r.url || 'Unknown')
+      const rawUrl = r.url || r.site_url || ''
+      const url = /^https?:\/\//.test(rawUrl) ? rawUrl : ''
       const color = groupColors[queryType] || groupColors.username
 
       nodes.add({
@@ -47,16 +49,19 @@ const buildGraph = (results, queryType, queryValue) => {
         color,
         shape: 'box',
         font: { color: '#e2e8f0', size: 12, face: 'Share Tech Mono' },
-        url
+        url,
+        title: `${siteName}${url ? '\n' + url : ''}`
       })
 
-      edges.add({
-        from: 'search',
-        to: id,
-        color: { color: '#38bdf8', highlight: '#38bdf8' },
-        width: 2,
-        dashes: [5, 5]
-      })
+      if (url) {
+        edges.add({
+          from: 'search',
+          to: id,
+          color: { color: '#38bdf8', highlight: '#38bdf8' },
+          width: 2,
+          dashes: [5, 5]
+        })
+      }
     })
   }
 
@@ -81,17 +86,14 @@ const buildGraph = (results, queryType, queryValue) => {
       timestep: 0.5,
       stabilization: { iterations: 150 }
     },
-    groups: {
-      search: { color: { border: '#00ffff', background: '#00ffff' }, font: { color: '#00ffff' } },
-      found: { color: { border: '#ff00ff', background: '#1e293b' }, font: { color: '#e2e8f0' } }
-    },
     layout: {
       improvedLayout: true
     },
-    interaction: {}
+    interaction: {
+      hover: true,
+      tooltipDelay: 200
+    }
   }
-
-  
 
   if (network) {
     network.destroy()
@@ -104,15 +106,20 @@ const buildGraph = (results, queryType, queryValue) => {
       const nodeId = params.nodes[0]
       const node = nodes.get(nodeId)
       if (node && node.url) {
-        window.open(node.url, '_blank', 'noopener')
+        try {
+          const u = new URL(node.url, window.location.origin)
+          if (u.protocol === 'http:' || u.protocol === 'https:') {
+            window.open(u.href, '_blank', 'noopener,noreferrer')
+          }
+        } catch {}
       }
     }
   })
 }
 
-watch(() => props.results, (newVal) => {
-  if (newVal && newVal.length > 0) {
-    buildGraph(newVal, props.queryType, props.queryValue)
+const rebuildGraph = () => {
+  if (props.results && Array.isArray(props.results) && props.results.length > 0) {
+    buildGraph(props.results, props.queryType, props.queryValue)
   } else {
     const nodes = new DataSet([{
       id: 'empty',
@@ -127,23 +134,18 @@ watch(() => props.results, (newVal) => {
       nodes: { font: { face: 'Share Tech Mono', size: 14 } }
     })
   }
-}, { deep: true })
+}
+
+watch(() => props.results, rebuildGraph, { deep: true })
 
 onMounted(() => {
-  if (props.results && props.results.length > 0) {
-    buildGraph(props.results, props.queryType, props.queryValue)
-  } else {
-    const nodes = new DataSet([{
-      id: 'empty',
-      label: 'Ejecutá una búsqueda para ver el grafo',
-      font: { color: '#64748b', size: 14, face: 'Share Tech Mono' }
-    }])
-    const edges = new DataSet()
-    const data = { nodes, edges }
-    network = new Network(containerRef.value, data, {
-      physics: { enabled: false },
-      nodes: { font: { face: 'Share Tech Mono', size: 14 } }
-    })
+  rebuildGraph()
+})
+
+onUnmounted(() => {
+  if (network) {
+    network.destroy()
+    network = null
   }
 })
 </script>

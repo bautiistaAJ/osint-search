@@ -53,33 +53,30 @@ def run_dns(domain: str) -> dict:
     except Exception as e:
         return {"error": str(e)}, False
 
-def run_github(username: str) -> dict:
+async def run_github(username: str) -> dict:
     import httpx
     try:
-        async def fetch():
-            async with httpx.AsyncClient() as client:
-                url = f"https://api.github.com/users/{username}"
-                r = await client.get(url, timeout=30)
-                if r.status_code == 200:
-                    data = r.json()
-                    return {
-                        "login": data.get("login"),
-                        "name": data.get("name"),
-                        "bio": data.get("bio"),
-                        "public_repos": data.get("public_repos"),
-                        "followers": data.get("followers"),
-                        "following": data.get("following"),
-                        "created_at": data.get("created_at"),
-                        "updated_at": data.get("updated_at"),
-                        "html_url": data.get("html_url"),
-                        "company": data.get("company"),
-                        "location": data.get("location"),
-                        "email": data.get("email"),
-                        "twitter_username": data.get("twitter_username"),
-                        "found": True
-                    }
-                return {"found": False, "status": r.status_code}
-        import asyncio
-        return asyncio.run(fetch())
+        async with httpx.AsyncClient() as client:
+            url = f"https://api.github.com/users/{username}"
+            r = await client.get(url, timeout=30)
+            if r.status_code == 200:
+                data = r.json()
+                return {
+                    "login": data.get("login"),
+                    "name": data.get("name"),
+                    "bio": data.get("bio"),
+                    "public_repos": data.get("public_repos"),
+                    "followers": data.get("followers"),
+                    "following": data.get("following"),
+                    "created_at": data.get("created_at"),
+                    "updated_at": data.get("updated_at"),
+                    "html_url": data.get("html_url"),
+                    "company": data.get("company"),
+                    "location": data.get("location"),
+                    "email": data.get("email"),
+                    "twitter_username": data.get("twitter_username"),
+                    "found": True
+                }
+            return {"found": False, "status": r.status_code}
     except Exception as e:
         return {"error": str(e), "found": False}
