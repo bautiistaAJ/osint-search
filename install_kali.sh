@@ -20,19 +20,19 @@ echo "🐍 Creando entorno virtual Python..."
 python3 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
-pip install --only-binary :all: pillow 2>/dev/null || true
+pip install --only-binary :all: pillow
 
 echo "🐍 Instalando dependencias del backend..."
 cd backend
-pip install -r requirements.txt 2>/dev/null || echo "⚠️ Algunos paquetes fallaron, continuando..."
-pip install maigret holehe python-whois ghunt sublist3r theharvester dnspython python-dotenv 2>/dev/null || true
-pip install whats-my-name 2>/dev/null || echo "⚠️ whatsmyname no disponible, omitiendo..."
-chmod +x frontend/node_modules/.bin/vite 2>/dev/null || true
+pip install -r requirements.txt
+pip install maigret holehe python-whois ghunt sublist3r theharvester dnspython python-dotenv
+pip install whats-my-name
 cd ..
 
 echo "📦 Instalando dependencias del frontend..."
 cd frontend
 npm install
+chmod +x node_modules/.bin/vite
 cd ..
 
 echo "✅ Instalación completa!"
