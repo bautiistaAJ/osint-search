@@ -37,12 +37,18 @@ chmod +x install_kali.sh && ./install_kali.sh
 
 ## Frontend Structure
 
-- src/App.vue - layout shell with RouterView, header, bottom nav
-- src/style.css - design tokens (CSS variables)
-- src/main.js - Vue app + router setup (routes: /, /history, /favorites)
-- src/views/ - Home.vue, History.vue, Favorites.vue
+- src/App.vue - layout shell with RouterView, header, **global bottom nav (only place it's defined — views must NOT render their own nav)**
+- src/style.css - design tokens (CSS variables) + global styles including `.bottom-nav` (do not duplicate `.bottom-nav a` in scoped styles — it overrides `router-link-active` and makes active link invisible)
+- src/main.js - Vue app + router setup (routes: /, /history, /favorites); imports style.css
+- src/views/ - Home.vue, History.vue, Favorites.vue (no nav inside; App.vue provides it)
 - src/components/ - GraphView.vue, TerminalView.vue, UsernameResults.vue, EmailResults.vue, DnsResults.vue, SubdomainResults.vue, PhoneDossier.vue, GithubDossier.vue, ScanConsole.vue
 - src/assets/tokens.css - legacy (superseded by src/style.css)
+
+## Known Gotchas (Frontend)
+
+- vis-network 10.x: no top-level `levels` option (use `layout.hierarchical` instead). `hoverNode` event params use `params.node` (singular), NOT `params.nodes`.
+- Vue `<script setup>`: `defineProps`/`defineEmits` are compiler macros — do NOT import them. `ref`/`computed` MUST be imported.
+- Backend `/api/history` and `/api/favorites` rows converted with `{k: r[k] for k in r.keys()}` (aiosqlite.Row), wrapped in try/except returning `[]`.
 
 ## API Reference
 
