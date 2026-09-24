@@ -37,11 +37,12 @@ chmod +x install_kali.sh && ./install_kali.sh
 
 ## Frontend Structure
 
-- src/App.vue - main component with search UI, graph view, and bottom nav
+- src/App.vue - layout shell with RouterView, header, bottom nav
+- src/style.css - design tokens (CSS variables)
 - src/main.js - Vue app + router setup (routes: /, /history, /favorites)
-- src/views/ - History.vue, Favorites.vue
-- src/components/GraphView.vue - vis-network entity graph
-- src/views/Home.vue - referenced in main.js imports but may be missing from the views/ directory
+- src/views/ - Home.vue, History.vue, Favorites.vue
+- src/components/ - GraphView.vue, TerminalView.vue, UsernameResults.vue, EmailResults.vue, DnsResults.vue, SubdomainResults.vue, PhoneDossier.vue, GithubDossier.vue, ScanConsole.vue
+- src/assets/tokens.css - legacy (superseded by src/style.css)
 
 ## API Reference
 
