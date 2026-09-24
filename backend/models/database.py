@@ -6,7 +6,7 @@ DB_PATH = "osint_search.db"
 
 async def get_db():
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.row_factory = aiosqlite.Row
+        db.row_factory = aiosqlite.Row
         yield db
 
 async def init_db():
