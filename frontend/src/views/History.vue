@@ -1,9 +1,20 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 
 const history = ref([])
 const loading = ref(false)
+
+function relativeTime(dateStr) {
+  const now = new Date()
+  const d = new Date(dateStr)
+  const diff = Math.floor((now - d) / 1000)
+  if (diff < 60) return 'hace un momento'
+  if (diff < 3600) return `hace ${Math.floor(diff / 60)}m`
+  if (diff < 86400) return `hace ${Math.floor(diff / 3600)}h`
+  if (diff < 604800) return `hace ${Math.floor(diff / 86400)}d`
+  return d.toLocaleDateString()
+}
 
 async function loadHistory() {
   loading.value = true
@@ -14,6 +25,28 @@ async function loadHistory() {
     console.error(e)
   } finally {
     loading.value = false
+  }
+}
+
+async function rerun(item) {
+  try {
+    const typeMap = {
+      username: '/api/search/username',
+      email: '/api/search/email',
+      domain: '/api/search/domain',
+      phone: '/api/search/phone',
+      google: '/api/search/google',
+      subdomains: '/api/search/subdomains',
+      harvest: '/api/search/harvest',
+      dns: '/api/search/dns',
+      github: '/api/search/github'
+    }
+    const endpoint = typeMap[item.query_type]
+    if (endpoint) {
+      await axios.get(`${endpoint}?q=${encodeURIComponent(item.query_value)}`)
+    }
+  } catch (e) {
+    console.error(e)
   }
 }
 
@@ -29,9 +62,9 @@ onMounted(loadHistory)
         <p class="cyber-subtitle">Últimas búsquedas ejecutadas</p>
       </header>
 
-      <div v-if="loading" class="loading">SCANNING...</div>
+      <div v-if="loading" class="loading-state">SCANNING...</div>
 
-      <div v-if="history.length === 0 && !loading" class="empty">
+      <div v-if="history.length === 0 && !loading" class="empty-state">
         <p>No tenés búsquedas previas.</p>
       </div>
 
@@ -40,16 +73,19 @@ onMounted(loadHistory)
           <div class="card-glow"></div>
           <div class="card-body">
             <span class="badge">{{ item.query_type }}</span>
-            <span class="date">{{ item.created_at }}</span>
-            <p class="query">{{ item.query_value }}</p>
+            <span class="date">{{ relativeTime(item.created_at) }}</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <p class="query">{{ item.query_value }}</p>
+              <button @click="rerun(item)" class="cyber-btn" style="padding: 6px 14px; font-size: 0.75rem; flex-shrink: 0;">RE-RUN</button>
+            </div>
           </div>
         </div>
       </div>
 
       <nav class="bottom-nav">
-        <router-link to="/">🔍 INICIO</router-link>
-        <router-link to="/history">📜 HISTORIAL</router-link>
-        <router-link to="/favorites">⭐ FAVORITOS</router-link>
+        <router-link to="/">INICIO</router-link>
+        <router-link to="/history">HISTORIAL</router-link>
+        <router-link to="/favorites">FAVORITOS</router-link>
       </nav>
     </div>
   </div>
@@ -58,30 +94,15 @@ onMounted(loadHistory)
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
-.cyber-body { background: #0a0e1a; min-height: 100vh; position: relative; }
-.cyber-grid {
-  position: fixed; top:0; left:0; width:100%; height:100%;
-  background-image: linear-gradient(rgba(0,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px);
-  background-size: 50px 50px;
-  pointer-events: none; z-index: 0;
-}
-.container { max-width: 900px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
-.cyber-header { text-align: center; margin-bottom: 30px; padding: 20px; }
-.glitch-text { font-family: 'Share Tech Mono', monospace; font-size: 2rem; color: #00ffff; text-shadow: 0 0 7px #00ffffaa; letter-spacing: 4px; animation: glitch 3s infinite; }
-@keyframes glitch { 0%,93%,100%{transform:translate(0)} 94%{transform:translate(-2px,1px)} 95%{transform:translate(2px,-1px)} 96%{transform:translate(-1px,2px)} }
-.cyber-subtitle { color: #94a3b8; font-family: 'Share Tech Mono', monospace; margin-top: 10px; font-size: 0.9rem; }
-.loading, .empty { text-align: center; padding: 40px; color: #00ffff; font-family: 'Share Tech Mono', monospace; letter-spacing: 2px; }
-.list { display: grid; gap: 12px; }
-.cyber-card { background: #0a0e1a; border: 1px solid #334155; padding: 16px; position: relative; overflow: hidden; transition: all 0.3s; }
-.cyber-card:hover { border-color: #00ffff44; box-shadow: 0 0 15px #00ffff11; }
-.card-glow { position: absolute; top:0; left:-100%; width:100%; height:100%; background: linear-gradient(90deg, transparent, rgba(0,255,255,0.05), transparent); transition: left 0.5s; }
+.cyber-body { background: var(--bg-primary); min-height: 100vh; position: relative; }
+.container { max-width: 900px; margin: 0 auto; padding: var(--spacing-md); position: relative; z-index: 1; }
+.cyber-header { text-align: center; margin-bottom: var(--spacing-lg); padding: var(--spacing-lg); }
+.list { display: grid; gap: var(--spacing-md); }
+.cyber-card { background: var(--bg-card); border: 1px solid var(--border); padding: var(--spacing-md); position: relative; overflow: hidden; transition: all 0.3s; }
+.cyber-card:hover { border-color: var(--border-cyan); box-shadow: var(--glow-cyan-soft); }
+.card-glow { position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(0,255,255,0.05), transparent); transition: left 0.5s; }
 .cyber-card:hover .card-glow { left: 100%; }
-.card-body { display: flex; justify-content: space-between; align-items: center; }
-.badge { background: #00ffff22; color: #00ffff; padding: 2px 10px; font-family: 'Share Tech Mono', monospace; font-size: 0.75rem; border: 1px solid #00ffff33; }
-.date { color: #64748b; font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; }
-.query { font-family: 'Share Tech Mono', monospace; font-size: 1.1rem; color: #e2e8f0; margin-top: 8px; }
-.bottom-nav { display: flex; gap: 20px; justify-content: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #334155; }
-.bottom-nav a { color: #00ffff; text-decoration: none; font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; letter-spacing: 1px; }
-.bottom-nav a:hover { text-shadow: 0 0 10px #00ffff66; }
+.card-body { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-sm); }
+.query { font-family: var(--font-mono); font-size: 1rem; color: var(--text-primary); margin-top: var(--spacing-sm); }
+.date { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.8rem; }
 </style>

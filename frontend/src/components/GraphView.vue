@@ -12,10 +12,24 @@ const props = defineProps({
 
 const containerRef = ref(null)
 let network = null
+let resizeObserver = null
+
+const groupColors = {
+  username: { color: '#ff00ff', highlight: '#ff00ff', border: '#ff00ff' },
+  email: { color: '#ffff00', highlight: '#ffff00', border: '#ffff00' },
+  domain: { color: '#00ff00', highlight: '#00ff00', border: '#00ff00' },
+  phone: { color: '#ff00ff', highlight: '#ff00ff', border: '#ff00ff' },
+  google: { color: '#ffff00', highlight: '#ffff00', border: '#ffff00' },
+  subdomains: { color: '#00ff00', highlight: '#00ff00', border: '#00ff00' },
+  harvest: { color: '#00ff00', highlight: '#00ff00', border: '#00ff00' },
+  dns: { color: '#00ff00', highlight: '#00ff00', border: '#00ff00' },
+  github: { color: '#64748b', highlight: '#64748b', border: '#64748b' }
+}
 
 const buildGraph = (results, queryType, queryValue) => {
   const nodes = new DataSet()
   const edges = new DataSet()
+  const color = groupColors[queryType] || groupColors.username
 
   nodes.add({
     id: 'search',
@@ -27,12 +41,6 @@ const buildGraph = (results, queryType, queryValue) => {
     title: queryValue || 'search'
   })
 
-  const groupColors = {
-    username: { color: '#ff00ff', highlight: '#ff00ff', border: '#ff00ff' },
-    email: { color: '#ffff00', highlight: '#ffff00', border: '#ffff00' },
-    domain: { color: '#00ff00', highlight: '#00ff00', border: '#00ff00' }
-  }
-
   if (results && Array.isArray(results)) {
     results.forEach((r, i) => {
       if (!r || typeof r !== 'object') return
@@ -40,13 +48,12 @@ const buildGraph = (results, queryType, queryValue) => {
       const siteName = String(r.site || r.username || r.url || 'Unknown')
       const rawUrl = r.url || r.site_url || ''
       const url = /^https?:\/\//.test(rawUrl) ? rawUrl : ''
-      const color = groupColors[queryType] || groupColors.username
 
       nodes.add({
         id,
         label: siteName.length > 20 ? siteName.substring(0, 20) + '...' : siteName,
         group: 'found',
-        color,
+        color: { color: color.color, highlight: color.highlight, border: color.border },
         shape: 'box',
         font: { color: '#e2e8f0', size: 12, face: 'Share Tech Mono' },
         url,
@@ -69,7 +76,8 @@ const buildGraph = (results, queryType, queryValue) => {
   const options = {
     nodes: {
       shape: 'box',
-      font: { face: 'Share Tech Mono', size: 12 }
+      font: { face: 'Share Tech Mono', size: 12 },
+      scaling: { label: { min: 8, max: 16 } }
     },
     edges: {
       font: { face: 'Share Tech Mono', size: 10, color: '#64748b' },
@@ -86,19 +94,16 @@ const buildGraph = (results, queryType, queryValue) => {
       timestep: 0.5,
       stabilization: { iterations: 150 }
     },
-    layout: {
-      improvedLayout: true
+    layout: { improvedLayout: true },
+    interaction: { hover: true, tooltipDelay: 200 },
+    levels: {
+      useLevelConstraint: true,
+      levelSeparation: 150
     },
-    interaction: {
-      hover: true,
-      tooltipDelay: 200
-    }
+    manipulation: { enabled: false }
   }
 
-  if (network) {
-    network.destroy()
-  }
-
+  if (network) { network.destroy(); network = null }
   network = new Network(containerRef.value, data, options)
 
   network.on('click', (params) => {
@@ -112,6 +117,15 @@ const buildGraph = (results, queryType, queryValue) => {
             window.open(u.href, '_blank', 'noopener,noreferrer')
           }
         } catch {}
+      }
+    }
+  })
+
+  network.on('hoverNode', (params) => {
+    if (params.nodes.length > 0) {
+      const node = nodes.get(params.nodes[0])
+      if (node) {
+        network.selectNodes([node.id])
       }
     }
   })
@@ -140,13 +154,15 @@ watch(() => props.results, rebuildGraph, { deep: true })
 
 onMounted(() => {
   rebuildGraph()
+  resizeObserver = new ResizeObserver(() => {
+    if (network) network.redraw()
+  })
+  if (containerRef.value) resizeObserver.observe(containerRef.value)
 })
 
 onUnmounted(() => {
-  if (network) {
-    network.destroy()
-    network = null
-  }
+  if (resizeObserver) resizeObserver.disconnect()
+  if (network) { network.destroy(); network = null }
 })
 </script>
 
@@ -157,17 +173,24 @@ onUnmounted(() => {
       <span class="status-badge">LIVE</span>
     </div>
     <div ref="containerRef" class="graph-canvas"></div>
+    <div class="graph-legend">
+      <span class="legend-item"><span class="legend-dot" style="background: #ff00ff;"></span> Target</span>
+      <span class="legend-item"><span class="legend-dot" style="background: #38bdf8;"></span> Connection</span>
+    </div>
   </div>
 </template>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
 .graph-container {
-  background: #0a0e1a;
-  border: 1px solid #00ffff33;
+  background: var(--bg-card);
+  border: 1px solid var(--border-cyan);
   border-radius: 8px;
   overflow: hidden;
   height: 100%;
   min-height: 400px;
+  position: relative;
 }
 .graph-header {
   display: flex;
@@ -176,30 +199,24 @@ onUnmounted(() => {
   padding: 12px 16px;
   background: linear-gradient(90deg, #00ffff11, #ff00ff11);
   border-bottom: 1px solid #00ffff22;
+  z-index: 2;
 }
-.glitch-text {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.9rem;
-  color: #00ffff;
-  text-shadow: 0 0 10px #00ffff66;
-  letter-spacing: 2px;
-}
-.status-badge {
-  background: #00ff0022;
-  color: #00ff00;
-  padding: 2px 10px;
+.graph-canvas { width: 100%; height: calc(100% - 50px); }
+.graph-legend {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  gap: 12px;
+  background: #0a0e1aee;
+  padding: 6px 12px;
   border-radius: 4px;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.75rem;
-  border: 1px solid #00ff0044;
-  animation: pulse 2s infinite;
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  z-index: 3;
 }
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-.graph-canvas {
-  width: 100%;
-  height: calc(100% - 50px);
-}
+.legend-item { display: flex; align-items: center; gap: 4px; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 </style>
