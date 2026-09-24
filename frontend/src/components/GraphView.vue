@@ -93,10 +93,11 @@ tooltip: {
       borderColor: '#334155',
       background: '#1e293b',
       color: '#e2e8f0'
-    }
-  },
-  interaction: {}
-}
+    },
+    interaction: {}
+  }
+
+  
 
   if (network) {
     network.destroy()
