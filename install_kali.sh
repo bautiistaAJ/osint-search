@@ -4,7 +4,7 @@ set -e
 
 echo "🔧 Instalando dependencias del sistema..."
 sudo apt update -qq
-sudo apt install -y python3-pip python3-full python3-venv nodejs npm docker.io docker-compose curl git
+sudo apt install -y python3-pip python3-full python3-venv nodejs npm docker.io docker-compose curl git libjpeg-dev zlib1g-dev
 
 echo "📁 Preparando el proyecto..."
 if [ ! -d "backend" ] || [ ! -d "frontend" ]; then
@@ -24,7 +24,7 @@ pip install --only-binary :all: pillow
 
 echo "🐍 Instalando dependencias del backend..."
 cd backend
-pip install -r requirements.txt
+pip install --only-binary :all: -r requirements.txt
 pip install maigret holehe python-whois ghunt sublist3r theharvester dnspython python-dotenv
 pip install whats-my-name
 cd ..
