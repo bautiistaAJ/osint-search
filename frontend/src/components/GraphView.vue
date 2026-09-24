@@ -96,10 +96,6 @@ const buildGraph = (results, queryType, queryValue) => {
     },
     layout: { improvedLayout: true },
     interaction: { hover: true, tooltipDelay: 200 },
-    levels: {
-      useLevelConstraint: true,
-      levelSeparation: 150
-    },
     manipulation: { enabled: false }
   }
 
@@ -122,10 +118,15 @@ const buildGraph = (results, queryType, queryValue) => {
   })
 
   network.on('hoverNode', (params) => {
-    if (params.nodes.length > 0) {
-      const node = nodes.get(params.nodes[0])
-      if (node) {
-        network.selectNodes([node.id])
+    if (params.node != null && params.node !== '') {
+      const node = nodes.get(params.node)
+      if (node && node.url) {
+        try {
+          const u = new URL(node.url, window.location.origin)
+          if (u.protocol === 'http:' || u.protocol === 'https:') {
+            window.open(u.href, '_blank', 'noopener,noreferrer')
+          }
+        } catch {}
       }
     }
   })

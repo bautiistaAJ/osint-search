@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import axios from 'axios'
 import GraphView from '../components/GraphView.vue'
 import TerminalView from '../components/TerminalView.vue'
@@ -25,7 +25,7 @@ const loading = ref(false)
 const error = ref('')
 const showGraph = ref(false)
 const searched = ref(false)
-const scanSteps = ref([])
+const total = computed(() => results.value.length)
 const currentStep = ref(-1)
 
 const scanStepLabels = {

@@ -81,12 +81,6 @@ onMounted(loadHistory)
           </div>
         </div>
       </div>
-
-      <nav class="bottom-nav">
-        <router-link to="/">INICIO</router-link>
-        <router-link to="/history">HISTORIAL</router-link>
-        <router-link to="/favorites">FAVORITOS</router-link>
-      </nav>
     </div>
   </div>
 </template>

@@ -41,12 +41,16 @@ async def add_history(query_type: str, query_value: str, results: str):
         return db.total_changes
 
 async def get_history(limit: int = 50):
-    async with aiosqlite.connect(DB_PATH) as db:
-        cursor = await db.execute(
-            "SELECT * FROM search_history ORDER BY created_at DESC LIMIT ?", (limit,)
-        )
-        rows = await cursor.fetchall()
-        return [dict(r) for r in rows]
+    try:
+        async with aiosqlite.connect(DB_PATH) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute(
+                "SELECT * FROM search_history ORDER BY created_at DESC LIMIT ?", (limit,)
+            )
+            rows = await cursor.fetchall()
+            return [{k: r[k] for k in r.keys()} for r in rows]
+    except Exception as e:
+        return []
 
 async def add_favorite(query_type: str, query_value: str, label: str):
     async with aiosqlite.connect(DB_PATH) as db:
@@ -58,10 +62,14 @@ async def add_favorite(query_type: str, query_value: str, label: str):
         return db.lastrowid
 
 async def get_favorites():
-    async with aiosqlite.connect(DB_PATH) as db:
-        cursor = await db.execute("SELECT * FROM favorites ORDER BY created_at DESC")
-        rows = await cursor.fetchall()
-        return [dict(r) for r in rows]
+    try:
+        async with aiosqlite.connect(DB_PATH) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute("SELECT * FROM favorites ORDER BY created_at DESC")
+            rows = await cursor.fetchall()
+            return [{k: r[k] for k in r.keys()} for r in rows]
+    except Exception as e:
+        return []
 
 async def delete_favorite(fav_id: int):
     async with aiosqlite.connect(DB_PATH) as db:

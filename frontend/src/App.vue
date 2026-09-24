@@ -41,13 +41,4 @@ import { RouterView } from 'vue-router'
   animation: pulse 2s infinite;
 }
 
-.bottom-nav a {
-  color: var(--cyan); text-decoration: none;
-  font-family: var(--font-mono);
-  font-size: 0.85rem; letter-spacing: 1px;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid transparent;
-  transition: all 0.3s;
-}
-.bottom-nav a:hover { text-shadow: var(--glow-cyan); border-color: var(--border); }
 </style>

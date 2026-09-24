@@ -182,7 +182,11 @@ async def search_domain(q: str):
 
 @app.get("/api/history")
 async def history(limit: int = 50):
-    return await get_history(limit)
+    try:
+        return await get_history(limit)
+    except Exception as e:
+        print(f"History error: {e}")
+        return []
 
 @app.post("/api/favorites")
 async def favorite(query_type: str, query_value: str, label: str):
