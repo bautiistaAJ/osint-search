@@ -48,7 +48,7 @@ chmod +x install_kali.sh
 ./install_kali.sh
 
 # 4. Ejecutar el backend
-cd backend && python3 main.py
+cd backend && source venv/bin/activate && python3 main.py
 
 # 5. Ejecutar el frontend (en otra terminal)
 cd frontend && npm run dev

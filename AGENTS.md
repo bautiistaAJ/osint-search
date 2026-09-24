@@ -15,7 +15,7 @@ OSINT Search ES - a cyberpunk-styled OSINT tool with a FastAPI backend (Python 3
 ## Running the App
 
 Option 1 - Direct (Kali/recommended):
-cd backend && python main.py
+cd backend && source venv/bin/activate && python3 main.py
 cd frontend && npm run dev
 
 Option 2 - Docker:
@@ -26,13 +26,14 @@ chmod +x install_kali.sh && ./install_kali.sh
 
 ## Key Gotchas
 
-- Run python main.py from inside backend/ - imports use from models.database import ... and from services.osint_services import ..., which only work when the backend directory is the working directory or on sys.path.
-- External tools must be installed separately - the backend calls maigret, whatsmyname, holehe, phoneinfoga, ghunt, sublist3r, theHarvester, dnspython, python-whois as CLI commands. pip install -r requirements.txt installs Python packages but the CLI tools may need pip install of the specific package names.
+- Run python3 main.py from inside backend/ with venv activated - imports use from models.database import ... and from services.osint_services import ..., which only work when the backend directory is the working directory or on sys.path. Use `python3 -m venv venv` and `source venv/bin/activate` first.
+- External tools are installed via pip in the venv - requirements.txt includes maigret, whatsmyname, holehe, phoneinfoga, ghunt, sublist3r, theHarvester, dnspython, python-whois. pip install -r requirements.txt handles all CLI tools.
 - Vite proxy: Frontend API calls to /api/... are proxied to http://localhost:8000 only when the dev server is running. In production (Docker), the proxy config does not apply.
 - No test, lint, typecheck, or formatter scripts are configured. package.json only has dev, build, preview. No pytest, ruff, or eslint setup exists.
 - No CI workflows, pre-commit hooks, or existing instruction files.
 - install_kali.sh clones from https://github.com/tu-usuario/osint-search-es.git - update the URL before use.
 - Database file: osint_search.db is created in the backend/ directory at runtime. When using Docker, it persists in the osint_data volume.
+- Kali moderno (PEP 668) requires a virtual environment. The venv is created at project root level (venv/) and must be activated before running the backend.
 
 ## Frontend Structure
 

@@ -49,7 +49,9 @@ docker-compose up --build
 ```bash
 # Terminal 1 — Backend
 cd backend
-pip install --break-system-packages -r requirements.txt
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 python main.py
 
 # Terminal 2 — Frontend
@@ -58,10 +60,7 @@ npm install
 npm run dev
 ```
 
-> **Requisito**: Instalar primero las herramientas CLI externas:
-> ```bash
-> pip install --break-system-packages maigret whatsmyname holehe phoneinfoga ghunt sublist3r theharvester dnspython python-whois
-> ```
+> **Requisito**: Instalar primero las herramientas del sistema con `install_kali.sh` (apt, python3-venv, nodejs). El entorno virtual (venv) evita el error PEP 668 de Kali moderno.
 
 ---
 
@@ -403,14 +402,15 @@ console.log(res.data.results); // Array de resultados
 ## 🔧 Solución de problemas
 
 ### Error: externally-managed-environment / PEP 668
-**Causa**: Kali moderno bloquea `pip install` sin `--break-system-packages`
-**Solución**: Usar `pip install --break-system-packages <paquete>` o verificar que el script `install_kali.sh` se ejecutó correctamente con las actualizaciones más recientes.
+**Causa**: Kali moderno bloquea `pip install` sin un entorno virtual
+**Solución**: Usar `python3 -m venv venv` y `source venv/bin/activate`. El script `install_kali.sh` lo hace automáticamente.
 
 ### Error: Comando no encontrado (maigret, holehe, etc.)
-**Causa**: Las herramientas CLI no están instaladas o no están en el `PATH`
+**Causa**: Las herramientas CLI no están instaladas o no están en el PATH
 **Solución**:
 ```bash
-pip install --break-system-packages maigret holehe phoneinfoga ghunt sublist3r theharvester dnspython python-whois
+source venv/bin/activate
+pip install maigret holehe phoneinfoga ghunt sublist3r theharvester dnspython python-whois
 which maigret  # Verificar que está en el PATH
 ```
 
