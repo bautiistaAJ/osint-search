@@ -34,8 +34,8 @@ async function search() {
   }
 }
 
-function getEndpoint(type: string) {
-  const map: Record<string, string> = {
+function getEndpoint(type) {
+  const map = {
     username: '/api/search/username',
     email: '/api/search/email',
     domain: '/api/search/domain',
@@ -58,8 +58,8 @@ function getUrl(r) {
   return r.url || r.site_url || r.profile_url || r.html_url || r[0]?.url || ''
 }
 
-function getPlaceholder(type: string) {
-  const placeholders: Record<string, string> = {
+function getPlaceholder(type) {
+  const placeholders = {
     username: 'ingresá un handle o nombre de usuario...',
     email: 'ingresá un email...',
     domain: 'ingresá un dominio (ej: example.com)...',
