@@ -26,7 +26,8 @@ echo "🐍 Instalando dependencias del backend..."
 cd backend
 pip install -r requirements.txt 2>/dev/null || echo "⚠️ Algunos paquetes fallaron, continuando..."
 pip install maigret holehe python-whois ghunt sublist3r theharvester dnspython python-dotenv 2>/dev/null || true
-pip install whatsmyname 2>/dev/null || pip install git+https://github.com/sherlock-project/whatsmyname.git 2>/dev/null || echo "⚠️ whatsmyname no disponible, omitiendo..."
+pip install whats-my-name 2>/dev/null || echo "⚠️ whatsmyname no disponible, omitiendo..."
+chmod +x frontend/node_modules/.bin/vite 2>/dev/null || true
 cd ..
 
 echo "📦 Instalando dependencias del frontend..."
