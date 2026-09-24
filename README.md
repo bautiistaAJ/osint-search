@@ -54,6 +54,8 @@ cd backend && python main.py
 cd frontend && npm run dev
 ```
 
+> **Nota**: Kali moderno usa PEP 668 (entornos externamente gestionados). El script `install_kali.sh` incluye `--break-system-packages` para `pip`. Si instalas manualmente, usa `pip install --break-system-packages <paquete>`.
+
 ## Con Docker Compose
 
 ```bash

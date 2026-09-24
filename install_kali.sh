@@ -7,7 +7,7 @@ sudo apt update -qq
 sudo apt install -y python3-pip nodejs npm docker.io docker-compose curl git
 
 echo "🐍 Instalando herramientas Python..."
-pip install maigret holehe python-whois whatsmyname httpx aiosqlite fastapi uvicorn python-multipart
+pip install --break-system-packages maigret holehe python-whois whatsmyname httpx aiosqlite fastapi uvicorn python-multipart
 
 echo "📁 Clonando proyecto..."
 if [ ! -d "osint-search-es" ]; then
@@ -17,7 +17,7 @@ cd osint-search-es
 
 echo "📦 Instalando dependencias del backend..."
 cd backend
-pip install -r requirements.txt
+pip install --break-system-packages -r requirements.txt
 cd ..
 
 echo "📦 Instalando dependencias del frontend..."
