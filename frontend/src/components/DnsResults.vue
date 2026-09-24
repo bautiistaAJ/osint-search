@@ -1,6 +1,4 @@
 <script setup>
-import { defineProps } from 'vue'
-
 const props = defineProps({
   records: { type: Object, default: () => ({}) },
   error: { type: String, default: '' },

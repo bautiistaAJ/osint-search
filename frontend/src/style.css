@@ -168,7 +168,7 @@ body {
   box-shadow: var(--glow-cyan);
 }
 
-.cards { display: grid; gap: var(--spacing-md); }
+.cards { display: grid; gap: var(--spacing-md); grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
 
 .cyber-card {
   background: var(--bg-card);
@@ -186,6 +186,14 @@ body {
   transition: left 0.5s;
 }
 .cyber-card:hover .card-glow { left: 100%; }
+.card-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-sm);
+  position: relative;
+  z-index: 1;
+}
 .card-body strong { color: var(--cyan); font-family: var(--font-mono); }
 .card-body a { display: block; margin-top: var(--spacing-sm); color: var(--text-secondary); font-size: 0.85rem; font-family: var(--font-mono); word-break: break-all; }
 
@@ -365,6 +373,7 @@ body {
 }
 .breach-found { background: #7f1d1d; padding: var(--spacing-md); border-left: 4px solid var(--red); }
 .breach-ok { background: #14532d; padding: var(--spacing-md); border-left: 4px solid var(--green); color: #4ade80; }
+.breach-unchecked { background: #78350f; padding: var(--spacing-md); border-left: 4px solid #fbbf24; color: #fbbf24; font-family: var(--font-mono); font-size: 0.85rem; }
 .breach-item { padding: var(--spacing-xs) 0; border-bottom: 1px solid #0a0e1a44; }
 
 /* Skeleton loading */
@@ -390,7 +399,6 @@ body {
   font-size: 0.7rem;
   letter-spacing: 1px;
   white-space: nowrap;
-  animation: pulse 1.5s infinite;
 }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 

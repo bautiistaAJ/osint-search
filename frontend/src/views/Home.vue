@@ -13,10 +13,12 @@ import ScanConsole from '../components/ScanConsole.vue'
 
 const query = ref('')
 const queryType = ref('username')
+const submittedQuery = ref('')
 const results = ref([])
 const breachData = ref(null)
 const rawData = ref('')
 const rawFound = ref(false)
+const rawError = ref('')
 const dnsRecords = ref({})
 const dnsError = ref('')
 const dnsFound = ref(false)
@@ -31,6 +33,7 @@ const scanSteps = ref([])
 const currentStep = ref(-1)
 
 const GRAPH_TYPES = ['username', 'email']
+let requestSeq = 0
 
 const scanStepLabels = {
   username: ['Running maigret...', 'Running whatsmyname...', 'Merging results'],
@@ -45,7 +48,9 @@ const scanStepLabels = {
 }
 
 async function search() {
+  if (loading.value) return
   if (!query.value.trim()) return
+  const reqId = ++requestSeq
   loading.value = true
   error.value = ''
   showGraph.value = false
@@ -53,27 +58,31 @@ async function search() {
   breachData.value = null
   rawData.value = ''
   rawFound.value = false
+  rawError.value = ''
   dnsRecords.value = {}
   dnsError.value = ''
   dnsFound.value = false
   githubData.value = null
   searched.value = true
   viewMode.value = 'graph'
+  submittedQuery.value = query.value
   currentStep.value = -1
   scanSteps.value = scanStepLabels[queryType.value] || ['Searching...']
   try {
     const endpoint = getEndpoint(queryType.value)
     const res = await axios.get(`${endpoint}?q=${encodeURIComponent(query.value)}`)
+    if (reqId !== requestSeq) return
     const data = res.data
     currentStep.value = scanSteps.value.length - 1
     await processResponse(data)
   } catch (e) {
+    if (reqId !== requestSeq) return
     error.value = 'Error en la búsqueda. Verificá que el backend esté corriendo.'
     results.value = []
     showGraph.value = false
     console.error(e)
   } finally {
-    loading.value = false
+    if (reqId === requestSeq) loading.value = false
   }
 }
 
@@ -86,6 +95,7 @@ async function processResponse(data) {
   breachData.value = data.breach || null
   rawData.value = data.results?.raw || data.raw || ''
   rawFound.value = data.results?.found || data.found || false
+  rawError.value = data.results?.error || ''
 
   if (queryType.value === 'dns') {
     dnsRecords.value = (typeof data.results === 'object' && !Array.isArray(data.results)) ? data.results : {}
@@ -104,6 +114,8 @@ async function processResponse(data) {
 }
 
 function onTypeChange() {
+  requestSeq++
+  loading.value = false
   query.value = ''
   results.value = []
   showGraph.value = false
@@ -112,11 +124,14 @@ function onTypeChange() {
   breachData.value = null
   rawData.value = ''
   rawFound.value = false
+  rawError.value = ''
   dnsRecords.value = {}
   dnsError.value = ''
   dnsFound.value = false
   githubData.value = null
   viewMode.value = 'graph'
+  scanSteps.value = []
+  currentStep.value = -1
 }
 
 function getEndpoint(type) {
@@ -200,11 +215,19 @@ function isGithubType() {
     <div v-if="searched && !loading && !error" class="results-block">
       <div v-if="showGraph" class="graph-section">
         <div class="view-toggle">
-          <button :class="{ active: viewMode === 'graph' }" @click="viewMode = 'graph'">◧ GRAPH</button>
-          <button :class="{ active: viewMode === 'list' }" @click="viewMode = 'list'">☰ LIST</button>
+          <button
+            :class="{ active: viewMode === 'graph' }"
+            :aria-pressed="viewMode === 'graph'"
+            @click="viewMode = 'graph'"
+          >◧ GRAPH</button>
+          <button
+            :class="{ active: viewMode === 'list' }"
+            :aria-pressed="viewMode === 'list'"
+            @click="viewMode = 'list'"
+          >☰ LIST</button>
         </div>
         <div v-show="viewMode === 'graph'" class="graph-frame">
-          <GraphView :results="results" :queryType="queryType" :queryValue="query" />
+          <GraphView :results="results" :queryType="queryType" :queryValue="submittedQuery" :breachData="breachData" />
         </div>
         <div v-show="viewMode === 'list'" class="results">
           <UsernameResults v-if="queryType === 'username'" :results="results" :total="total" />
@@ -214,16 +237,18 @@ function isGithubType() {
 
       <div v-else-if="isRawType() && rawData" class="results">
         <h2 class="section-title">RAW OUTPUT</h2>
+        <div v-if="rawError" class="cyber-error">{{ rawError }}</div>
         <PhoneDossier v-if="queryType === 'phone'" :raw="rawData" :found="rawFound" />
         <SubdomainResults v-else-if="queryType === 'subdomains' || queryType === 'harvest'" :results="results" :raw="rawData" />
-        <TerminalView v-else :raw="rawData" :path="query" :title="queryType.toUpperCase()" />
+        <TerminalView v-else :raw="rawData" :path="submittedQuery" :title="queryType.toUpperCase()" />
       </div>
 
       <div v-else-if="isRawType()" class="results">
         <h2 class="section-title">RESULTADOS</h2>
+        <div v-if="rawError" class="cyber-error">{{ rawError }}</div>
         <PhoneDossier v-if="queryType === 'phone'" :raw="rawData" :found="rawFound" />
         <SubdomainResults v-else-if="queryType === 'subdomains' || queryType === 'harvest'" :results="results" :raw="rawData" />
-        <TerminalView v-else :raw="rawData" :path="query" :title="queryType.toUpperCase()" />
+        <TerminalView v-else :raw="rawData" :path="submittedQuery" :title="queryType.toUpperCase()" />
       </div>
 
       <div v-else-if="isDnsType()" class="results">
@@ -237,7 +262,6 @@ function isGithubType() {
       </div>
 
       <div v-else-if="queryType === 'email'" class="results">
-        <h2 class="section-title">EMAIL / BREACHES</h2>
         <EmailResults :results="results" :breachData="breachData" />
       </div>
 
@@ -268,13 +292,14 @@ function isGithubType() {
 .results-block { margin-top: 20px; }
 
 .graph-section { display: flex; flex-direction: column; }
+.graph-section .results { margin-top: 0; }
 .graph-frame { height: clamp(400px, 60vh, 700px); }
 
 .view-toggle {
   display: flex;
   justify-content: flex-end;
   gap: 0;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
 }
 .view-toggle button {
   background: var(--bg-primary);
@@ -288,6 +313,14 @@ function isGithubType() {
   transition: all 0.2s;
 }
 .view-toggle button + button { border-left: none; }
+.view-toggle button:hover:not(.active) {
+  color: var(--cyan);
+  border-color: var(--border-cyan);
+}
+.view-toggle button:focus-visible {
+  outline: 1px solid var(--cyan);
+  outline-offset: 2px;
+}
 .view-toggle button.active {
   background: var(--cyan);
   color: var(--bg-primary);

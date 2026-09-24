@@ -88,7 +88,7 @@ async def query_holehe(email: str) -> list:
     return results
 
 async def query_hibp(email: str) -> dict:
-    return {"breaches": [], "found": False}
+    return {"breaches": [], "found": False, "checked": False}
 
 async def query_whois(domain: str) -> dict:
     try:

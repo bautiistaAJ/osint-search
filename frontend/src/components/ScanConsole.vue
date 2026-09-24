@@ -1,6 +1,4 @@
 <script setup>
-import { defineProps } from 'vue'
-
 const props = defineProps({
   steps: { type: Array, default: () => [] },
   currentStep: { type: Number, default: -1 },

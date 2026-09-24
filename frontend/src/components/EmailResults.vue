@@ -1,6 +1,4 @@
 <script setup>
-import { defineProps } from 'vue'
-
 const props = defineProps({
   results: { type: Array, default: () => [] },
   breachData: { type: Object, default: null }
@@ -9,32 +7,34 @@ const props = defineProps({
 
 <template>
   <div class="email-results">
-    <div class="section-title">ACCOUNTS FOUND</div>
+    <div class="section-title">CUENTAS ENCONTRADAS</div>
     <div v-if="results.length > 0" class="cards">
       <div v-for="(r, i) in results" :key="i" class="cyber-card">
         <div class="card-glow"></div>
         <div class="card-body">
           <strong>{{ r.site || 'Unknown' }}</strong>
           <span class="status-found" v-if="r.found">FOUND</span>
-          <span class="status-notfound" v-else>NOT FOUND</span>
         </div>
       </div>
     </div>
-    <div v-else class="empty-state">No accounts found.</div>
+    <div v-else class="empty-state">No se encontraron cuentas.</div>
 
     <div v-if="breachData" class="breach-panel" style="margin-top: var(--spacing-lg);">
       <div class="section-title">BREACH CHECK</div>
-      <div v-if="breachData.found" class="breach-found">
-        <p style="margin-bottom: 8px;">Found in {{ breachData.breaches?.length || 0 }} breach(es).</p>
+      <div v-if="breachData.checked === false" class="breach-unchecked">
+        <p>NO CONFIGURADO — HIBP no está conectado. Los resultados de breach no son confiables.</p>
+      </div>
+      <div v-else-if="breachData.found" class="breach-found">
+        <p style="margin-bottom: 8px;">Encontrado en {{ breachData.breaches?.length || 0 }} brecha(s).</p>
         <div v-for="(b, i) in breachData.breaches" :key="i" class="breach-item">
           <strong>{{ b.Title || b.Name || b.name }}</strong> - {{ b.BreachDate || 'Fecha desconocida' }}
         </div>
       </div>
       <div v-else-if="breachData.error" class="breach-found">
-        <p>HIBP unavailable: {{ breachData.error }}</p>
+        <p>HIBP no disponible: {{ breachData.error }}</p>
       </div>
       <div v-else class="breach-ok">
-        <p>No breaches found.</p>
+        <p>Sin brechas encontradas.</p>
       </div>
     </div>
   </div>

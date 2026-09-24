@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, ref } from 'vue'
+import { ref } from 'vue'
 
 const props = defineProps({
   results: { type: Array, default: () => [] },
@@ -7,7 +7,6 @@ const props = defineProps({
 })
 
 const filter = ref('')
-const sorted = ref([])
 
 function getSubdomains() {
   if (!props.raw && !props.results.length) return []
@@ -18,9 +17,11 @@ function getSubdomains() {
 }
 
 function getDisplay() {
-  const list = typeof sorted.value === 'string' ? sorted.value.split('\n').filter(l => l.trim()) : sorted.value
+  const list = getSubdomains()
   if (!filter.value) return list
-  return list.filter(l => typeof l === 'string' ? l.toLowerCase().includes(filter.value.toLowerCase()) : String(l).toLowerCase().includes(filter.value.toLowerCase()))
+  return list.filter(l => typeof l === 'string'
+    ? l.toLowerCase().includes(filter.value.toLowerCase())
+    : String(l).toLowerCase().includes(filter.value.toLowerCase()))
 }
 </script>
 
