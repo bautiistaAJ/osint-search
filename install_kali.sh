@@ -20,12 +20,13 @@ echo "🐍 Creando entorno virtual Python..."
 python3 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
+pip install --only-binary :all: pillow 2>/dev/null || true
 
 echo "🐍 Instalando dependencias del backend..."
 cd backend
 pip install -r requirements.txt 2>/dev/null || echo "⚠️ Algunos paquetes fallaron, continuando..."
 pip install maigret holehe python-whois ghunt sublist3r theharvester dnspython python-dotenv 2>/dev/null || true
-pip install git+https://github.com/sherlock-project/whatsmyname.git 2>/dev/null || echo "⚠️ whatsmyname no disponible, omitiendo..."
+pip install whatsmyname 2>/dev/null || pip install git+https://github.com/sherlock-project/whatsmyname.git 2>/dev/null || echo "⚠️ whatsmyname no disponible, omitiendo..."
 cd ..
 
 echo "📦 Instalando dependencias del frontend..."
