@@ -26,6 +26,7 @@ const error = ref('')
 const showGraph = ref(false)
 const searched = ref(false)
 const total = computed(() => results.value.length)
+const scanSteps = ref([])
 const currentStep = ref(-1)
 
 const scanStepLabels = {
