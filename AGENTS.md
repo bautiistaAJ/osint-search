@@ -47,6 +47,11 @@ chmod +x install_kali.sh && ./install_kali.sh
 ## Known Gotchas (Frontend)
 
 - vis-network 10.x: no top-level `levels` option (use `layout.hierarchical` instead). `hoverNode` event params use `params.node` (singular), NOT `params.nodes`. Never open URLs on `hoverNode` — only on `click`.
+- vis-network node color keys: only `background`/`border`/`highlight`/`hover` are read — `color: {...}` and `highlightBorder` are IGNORED. Use `color: { background, highlight: { background, border }, border }`. For icons use `shape:'icon'` + `icon: { face: "'FontAwesome'", code }` (FontAwesome 4.7 CSS linked in index.html).
+- vis-network `Popup.setText` uses `innerText` for strings — HTML tooltips must be HTMLElement. Use `makeTitle(html)` helper (`div.innerHTML = html`) in GraphView.vue.
+- Graph incremental render: initial `TOP_K = 24` nodes, `loadMore()` appends next batch via `addRange(from, to)` on the same DataSet (no full rebuild). Never rebuild the whole graph on legend/find actions — use `network.selectNodes` + `fit`.
+- Graph node URL open: click → detail panel (`selected` ref) with explicit ABRIR/COPIAR buttons; never `window.open` from hover or auto-click.
+- `submittedQuery` ref snapshot in Home.vue: bound as `:queryValue` so per-keystroke edits don't trigger GraphView rebuild. Graph rebuilds only on `props.results` watch.
 - Vue `<script setup>`: `defineProps`/`defineEmits` are compiler macros — do NOT import them. `ref`/`computed` MUST be imported.
 - Backend `/api/history` and `/api/favorites` rows converted with `{k: r[k] for k in r.keys()}` (aiosqliteRow), wrapped in try/except returning `[]`.
 - Graph render rule: `showGraph` is ONLY set for GRAPH_TYPES (`username`, `email`) with array results — dict-shaped types (dns, github, phone, google, domain, subdomains, harvest) must render their own components. Backend dicts get wrapped into 1-element arrays in `processResponse`, so never gate the graph on `results.length > 0` alone.
