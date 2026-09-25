@@ -35,6 +35,15 @@ chmod +x install_kali.sh && ./install_kali.sh
 - Database file: osint_search.db is created in the backend/ directory at runtime. When using Docker, it persists in the osint_data volume.
 - Kali moderno (PEP 668) requires a virtual environment. The venv is created at project root level (venv/) and must be activated before running the backend.
 
+## Email Checker (native)
+
+- `/api/search/email` runs `check_email_native()` and `query_holehe()` concurrently via `asyncio.gather`, then `merge_results()` — native ∪ holehe deduped by domain.
+- Site registry: `backend/services/email_sites.json` (47 sites) — **to add a site, edit only this JSON** (name, domain, url/method/params/json/form or `steps`+`capture`, `match.exists`/`match.not_exists` condition lists). Conditions: `status`, `body_contains`, `body_not_contains`, `regex`, `json` (dotted key path), `json_truthy`, `json_falsy`. `{email}`/`{md5_email}`/`{capture_var}` interpolation tokens; capture supports `regex` (body) or `cookie` (response cookie).
+- Canary FP suppression: each run also checks a random `canary-<hex>@gmail.com`; sites that report it "exists" are marked unreliable → their hits get `confidence: "low"`. Canary result cached in memory **TTL 24h** (`CANARY_TTL` in `services/email_checker.py`). Never raise CANARY_TTL without considering the per-day request cost.
+- Result fields: `method` = `both` | `native` | `holehe`, `confidence` = `high` (both agree) | `medium` (one source) | `low` (canary failed). Frontend badges in EmailResults.vue map these to VERIFICADO/NATIVE/HOLEHE/SIN CONFIAR. Old history rows lack these fields → badge hidden.
+- Engine limits: `SITE_TIMEOUT=8s`, `CONCURRENCY=15`, `TOTAL_BUDGET=60s` (on timeout `check_email_native` returns `[]` and holehe still answers). Site errors are skipped silently (verdict None), same as holehe's rateLimit branches.
+- Tests: `cd backend && python3 tests/test_email_checker.py` (plain asserts, no pytest — covers match evaluation, interpolation, merge, registry sanity, canary TTL).
+
 ## Frontend Structure
 
 - src/App.vue - layout shell with RouterView, header, **global bottom nav (only place it's defined — views must NOT render their own nav)**

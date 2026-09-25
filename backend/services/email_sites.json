@@ -1,0 +1,2051 @@
+[
+  {
+    "name": "Adobe",
+    "domain": "adobe.com",
+    "strategy": "password recovery",
+    "method": "POST",
+    "url": "https://auth.services.adobe.com/signin/v1/authenticationstate",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "X-IMS-CLIENTID": "adobedotcom2",
+      "Content-Type": "application/json;charset=utf-8",
+      "Origin": "https://auth.services.adobe.com"
+    },
+    "json": {
+      "username": "{email}",
+      "accountType": "individual"
+    },
+    "match": {
+      "exists": [
+        {
+          "body_not_contains": [
+            "errorCode"
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_contains": [
+            "errorCode"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Amazon",
+    "domain": "amazon.com",
+    "strategy": "login",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://www.amazon.com/ap/signin?openid.pape.max_auth_age=0&openid.return_to=https%3A%2F%2Fwww.amazon.com%2F%3F_encoding%3DUTF8%26ref_%3Dnav_ya_signin&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=usflex&openid.mode=checkid_setup&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&"
+      },
+      {
+        "method": "POST",
+        "url": "https://www.amazon.com/ap/signin/",
+        "form": {
+          "openid.pape.max_auth_age": "0",
+          "openid.return_to": "https://www.amazon.com/?_encoding=UTF8&ref_=nav_ya_signin",
+          "openid.identity": "http://specs.openid.net/auth/2.0/identifier_select",
+          "openid.assoc_handle": "usflex",
+          "openid.mode": "checkid_setup",
+          "openid.claimed_id": "http://specs.openid.net/auth/2.0/identifier_select",
+          "openid.ns": "http://specs.openid.net/auth/2.0/",
+          "email": "{email}"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "body_contains": [
+            "auth-password-missing-alert"
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_not_contains": [
+            "auth-password-missing-alert"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Archive.org",
+    "domain": "archive.org",
+    "strategy": "register",
+    "method": "POST",
+    "url": "https://archive.org/account/signup",
+    "headers": {
+      "Origin": "https://archive.org",
+      "Referer": "https://archive.org/account/signup"
+    },
+    "form": {
+      "input_name": "username",
+      "input_value": "{email}",
+      "input_validator": "true",
+      "submit_by_js": "true"
+    },
+    "match": {
+      "exists": [
+        {
+          "body_contains": [
+            "is already taken."
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_not_contains": [
+            "is already taken."
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Atlassian",
+    "domain": "atlassian.com",
+    "strategy": "register",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://id.atlassian.com/login",
+        "headers": {
+          "Referer": "https://id.atlassian.com/",
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          "Origin": "https://id.atlassian.com"
+        },
+        "capture": [
+          {
+            "var": "csrfToken",
+            "regex": "&quot;csrfToken&quot;:&quot;([^&]+)",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "url": "https://id.atlassian.com/rest/check-username",
+        "headers": {
+          "Referer": "https://id.atlassian.com/",
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          "Origin": "https://id.atlassian.com"
+        },
+        "form": {
+          "csrfToken": "{csrfToken}",
+          "username": "{email}"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "body_not_contains": [
+            "signup"
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "json": {
+            "key": "action",
+            "value": "signup"
+          }
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "BlaBlaCar",
+    "domain": "blablacar.com",
+    "strategy": "register",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://www.blablacar.com/register",
+        "headers": {
+          "Accept": "application/json",
+          "Referer": "https://www.blablacar.com/",
+          "Origin": "https://www.blablacar.com"
+        },
+        "capture": [
+          {
+            "var": "appToken",
+            "regex": "\"appToken\":\"([^\"]+)\"",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "url": "https://edge.blablacar.com/auth/validation/email/{email}",
+        "headers": {
+          "Authorization": "Bearer {appToken}",
+          "Accept": "application/json"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "json": {
+            "key": "exists",
+            "value": true
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "json": {
+            "key": "exists",
+            "value": false
+          }
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Buy Me a Coffee",
+    "domain": "buymeacoffee.com",
+    "strategy": "register",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://www.buymeacoffee.com/",
+        "headers": {
+          "Accept": "application/json, text/javascript, */*; q=0.01",
+          "X-Requested-With": "XMLHttpRequest",
+          "Origin": "https://www.buymeacoffee.com"
+        },
+        "capture": [
+          {
+            "var": "csrf",
+            "regex": "name=[\"']bmc_csrf_token[\"'][^>]*value=[\"']([^\"']+)",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "url": "https://www.buymeacoffee.com/auth/validate_email_and_password",
+        "headers": {
+          "Accept": "application/json, text/javascript, */*; q=0.01",
+          "X-Requested-With": "XMLHttpRequest",
+          "Origin": "https://www.buymeacoffee.com",
+          "Cookie": "bmccsrftoken={csrf}"
+        },
+        "form": {
+          "email": "{email}",
+          "password": "aB3dE5fG7hI9jK1lM2nO",
+          "bmc_csrf_token": "{csrf}"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "json": {
+            "key": "status",
+            "value": "FAIL"
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "json": {
+            "key": "status",
+            "value": "SUCCESS"
+          }
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Codecademy",
+    "domain": "codecademy.com",
+    "strategy": "register",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://www.codecademy.com/register?redirect=%2F",
+        "capture": [
+          {
+            "var": "csrfToken",
+            "regex": "name=\"csrf-token\"[^>]*content=\"([^\"]+)\"",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "url": "https://www.codecademy.com/register/validate",
+        "headers": {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "X-CSRF-Token": "{csrfToken}",
+          "Origin": "https://www.codecademy.com"
+        },
+        "json": {
+          "user": {
+            "email": "{email}"
+          }
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "body_contains": [
+            "is already taken"
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_not_contains": [
+            "is already taken"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "CodePen",
+    "domain": "codepen.io",
+    "strategy": "register",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://codepen.io/accounts/signup/user/free",
+        "capture": [
+          {
+            "var": "csrfToken",
+            "regex": "name=\"csrf-token\"[^>]*content=\"([^\"]+)\"",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "url": "https://codepen.io/accounts/duplicate_check",
+        "headers": {
+          "X-CSRF-Token": "{csrfToken}",
+          "X-Requested-With": "XMLHttpRequest",
+          "Origin": "https://codepen.io",
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+        },
+        "form": {
+          "attribute": "email",
+          "value": "{email}",
+          "context": "user"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "body_contains": [
+            "That Email is already taken."
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_not_contains": [
+            "That Email is already taken."
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Deliveroo",
+    "domain": "deliveroo.com",
+    "strategy": "register",
+    "method": "POST",
+    "url": "https://consumer-ow-api.deliveroo.com/orderapp/v1/check-email",
+    "headers": {
+      "Accept": "application/json, application/vnd.api+json",
+      "X-Requested-With": "XMLHttpRequest",
+      "X-Roo-Client": "orderweb-client",
+      "X-Roo-Country": "en",
+      "Content-Type": "application/json;charset=UTF-8",
+      "Origin": "https://deliveroo.com"
+    },
+    "json": {
+      "email_address": "{email}"
+    },
+    "match": {
+      "exists": [
+        {
+          "json": {
+            "key": "registered",
+            "value": true
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "json": {
+            "key": "registered",
+            "value": false
+          }
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "devRant",
+    "domain": "devrant.com",
+    "strategy": "register",
+    "method": "POST",
+    "url": "https://devrant.com/api/users",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+      "X-Requested-With": "XMLHttpRequest",
+      "Origin": "https://devrant.com"
+    },
+    "form": {
+      "app": "3",
+      "type": "1",
+      "email": "{email}",
+      "username": "",
+      "password": "",
+      "guid": "",
+      "plat": "3",
+      "sid": "",
+      "seid": ""
+    },
+    "match": {
+      "exists": [
+        {
+          "json": {
+            "key": "error",
+            "value": "The email specified is already registered to an account."
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "body_not_contains": [
+            "already registered to an account"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Diigo",
+    "domain": "diigo.com",
+    "strategy": "register",
+    "method": "GET",
+    "url": "https://www.diigo.com/user_mana2/check_email",
+    "headers": {
+      "X-Requested-With": "XMLHttpRequest",
+      "Referer": "https://www.diigo.com/sign-up?plan=free"
+    },
+    "params": {
+      "email": "{email}"
+    },
+    "match": {
+      "exists": [
+        {
+          "regex": [
+            "^0$"
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_not_contains": [
+            "0"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Discord",
+    "domain": "discord.com",
+    "strategy": "register",
+    "method": "POST",
+    "url": "https://discord.com/api/v8/auth/register",
+    "headers": {
+      "Accept": "*/*",
+      "Content-Type": "application/json",
+      "Origin": "https://discord.com"
+    },
+    "json": {
+      "fingerprint": "",
+      "email": "{email}",
+      "username": "osintusername12345",
+      "password": "osintpassword1234",
+      "invite": null,
+      "consent": true,
+      "date_of_birth": "",
+      "gift_code_sku_id": null,
+      "captcha_key": null
+    },
+    "match": {
+      "exists": [
+        {
+          "regex": [
+            "EMAIL_ALREADY_REGISTERED"
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_not_contains": [
+            "EMAIL_ALREADY_REGISTERED"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Docker",
+    "domain": "docker.com",
+    "strategy": "register",
+    "method": "POST",
+    "url": "https://hub.docker.com/v2/users/signup/",
+    "headers": {
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "Origin": "https://hub.docker.com",
+      "Referer": "https://hub.docker.com/signup"
+    },
+    "json": {
+      "email": "{email}",
+      "password": "",
+      "recaptcha_response": "",
+      "redirect_value": "",
+      "subscribe": true,
+      "username": ""
+    },
+    "match": {
+      "exists": [
+        {
+          "body_contains": [
+            "This email is already in use."
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_not_contains": [
+            "This email is already in use."
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Duolingo",
+    "domain": "duolingo.com",
+    "strategy": "other",
+    "method": "GET",
+    "url": "https://www.duolingo.com/2017-06-30/users",
+    "params": {
+      "email": "{email}"
+    },
+    "match": {
+      "exists": [
+        {
+          "json_truthy": {
+            "key": "users"
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "json_falsy": {
+            "key": "users"
+          }
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "eBay",
+    "domain": "ebay.com",
+    "strategy": "login",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://www.ebay.com/signin/",
+        "headers": {
+          "Accept": "application/json, text/plain, */*",
+          "Origin": "https://www.ebay.com"
+        },
+        "capture": [
+          {
+            "var": "srt",
+            "regex": "\"csrfAjaxToken\":\"([^\"]+)\"",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "url": "https://signin.ebay.com/signin/srv/identifer",
+        "headers": {
+          "Accept": "application/json, text/plain, */*",
+          "Origin": "https://www.ebay.com"
+        },
+        "form": {
+          "identifier": "{email}",
+          "srt": "{srt}"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "body_not_contains": [
+            "\"err\""
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_contains": [
+            "\"err\""
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Eventbrite",
+    "domain": "eventbrite.com",
+    "strategy": "login",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://www.eventbrite.com/signin/?referrer=%2F",
+        "capture": [
+          {
+            "var": "csrftoken",
+            "regex": "csrftoken[\"'=:\\s]+([^\"';\\s]+)",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "url": "https://www.eventbrite.com/api/v3/users/lookup/",
+        "headers": {
+          "X-CSRFToken": "{csrftoken}",
+          "Cookie": "csrftoken={csrftoken}",
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+          "Origin": "https://www.eventbrite.com"
+        },
+        "json": {
+          "email": "{email}"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "json": {
+            "key": "exists",
+            "value": true
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "json": {
+            "key": "exists",
+            "value": false
+          }
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Evernote",
+    "domain": "evernote.com",
+    "strategy": "login",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://www.evernote.com/Login.action",
+        "headers": {
+          "Referer": "https://www.evernote.com/Login.action"
+        },
+        "capture": [
+          {
+            "var": "hpts",
+            "regex": "document.getElementById\\(\"hpts\"\\).value = \"([^\"]+)\"",
+            "group": 1
+          },
+          {
+            "var": "hptsh",
+            "regex": "document.getElementById\\(\"hptsh\"\\).value = \"([^\"]+)\"",
+            "group": 1
+          },
+          {
+            "var": "sourcePage",
+            "regex": "<input type=\"hidden\" name=\"_sourcePage\" value=\"([^\"]+)\"",
+            "group": 1
+          },
+          {
+            "var": "fp",
+            "regex": "<input type=\"hidden\" name=\"__fp\" value=\"([^\"]+)\"",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "url": "https://www.evernote.com/Login.action",
+        "headers": {
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "X-Requested-With": "XMLHttpRequest",
+          "Origin": "https://www.evernote.com",
+          "Referer": "https://www.evernote.com/Login.action"
+        },
+        "form": {
+          "username": "{email}",
+          "evaluateUsername": "",
+          "hpts": "{hpts}",
+          "hptsh": "{hptsh}",
+          "analyticsLoginOrigin": "login_action",
+          "clipperFlow": "false",
+          "showSwitchService": "true",
+          "usernameImmutable": "false",
+          "_sourcePage": "{sourcePage}",
+          "__fp": "{fp}"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "body_contains": [
+            "usePasswordAuth"
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_contains": [
+            "displayMessage"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Facebook",
+    "domain": "facebook.com",
+    "strategy": "register",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://www.facebook.com/accounts/emailsignup/",
+        "headers": {
+          "Accept": "application/json, text/plain, */*",
+          "Origin": "https://www.facebook.com"
+        },
+        "capture": [
+          {
+            "var": "token",
+            "regex": "\\{\"config\":\"csrf_token\":\"([^\"]*)",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "url": "https://www.facebook.com/api/v1/web/accounts/web_create_ajax/attempt/",
+        "headers": {
+          "Accept": "application/json, text/plain, */*",
+          "Origin": "https://www.facebook.com",
+          "x-csrftoken": "{token}"
+        },
+        "form": {
+          "email": "{email}",
+          "first_name": "",
+          "opt_into_one_tap": "false"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "regex": [
+            "email_is_taken"
+          ]
+        },
+        {
+          "regex": [
+            "email_sharing_limit"
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_not_contains": [
+            "email_is_taken",
+            "email_sharing_limit"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Firefox",
+    "domain": "firefox.com",
+    "strategy": "register",
+    "method": "POST",
+    "url": "https://api.accounts.firefox.com/v1/account/status",
+    "form": {
+      "email": "{email}"
+    },
+    "match": {
+      "exists": [
+        {
+          "regex": [
+            "^(?![\\s\\S]*false)[\\s\\S]*true"
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_contains": [
+            "false"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Flickr",
+    "domain": "flickr.com",
+    "strategy": "login",
+    "method": "GET",
+    "url": "https://identity-api.flickr.com/migration",
+    "headers": {
+      "Referer": "https://identity.flickr.com/login",
+      "Origin": "https://identity.flickr.com"
+    },
+    "params": {
+      "email": "{email}"
+    },
+    "match": {
+      "exists": [
+        {
+          "json": {
+            "key": "state_code",
+            "value": "5"
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "regex": [
+            "^(?![\\s\\S]*\"state_code\"\\s*:\\s*\"5)"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "GitHub",
+    "domain": "github.com",
+    "strategy": "register",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://github.com/join",
+        "capture": [
+          {
+            "var": "token",
+            "regex": "<auto-check src=\"/signup_check/username[\\s\\S]*?value=\"([\\S]+)\"[\\s\\S]*<auto-check src=\"/signup_check/email[\\s\\S]*?value=\"([\\S]+)\"",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "url": "https://github.com/signup_check/email",
+        "form": {
+          "value": "{email}",
+          "authenticity_token": "{token}"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "status": [
+            422
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "status": [
+            200
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Gravatar",
+    "domain": "en.gravatar.com",
+    "strategy": "other",
+    "method": "GET",
+    "url": "https://en.gravatar.com/{md5_email}.json",
+    "match": {
+      "exists": [
+        {
+          "status": [
+            200
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "status": [
+            404
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Imgur",
+    "domain": "imgur.com",
+    "strategy": "register",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://imgur.com/register?redirect=%2Fuser"
+      },
+      {
+        "method": "POST",
+        "url": "https://imgur.com/signin/ajax_email_available",
+        "headers": {
+          "X-Requested-With": "XMLHttpRequest",
+          "Origin": "https://imgur.com"
+        },
+        "form": {
+          "email": "{email}"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "json": {
+            "key": "data.available",
+            "value": false
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "json": {
+            "key": "data.available",
+            "value": true
+          }
+        },
+        {
+          "body_contains": [
+            "Invalid email domain"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Instagram",
+    "domain": "instagram.com",
+    "strategy": "register",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://www.instagram.com/accounts/emailsignup/",
+        "headers": {
+          "Accept": "application/json, text/plain, */*",
+          "Origin": "https://www.instagram.com"
+        },
+        "capture": [
+          {
+            "var": "token",
+            "regex": "\\{\\\\\"config\\\\\":\\\\\"csrf_token\\\\\":\\\\\"([\\s\\S]*?)\\\\\"",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "url": "https://www.instagram.com/api/v1/web/accounts/web_create_ajax/attempt/",
+        "headers": {
+          "Accept": "application/json, text/plain, */*",
+          "Origin": "https://www.instagram.com",
+          "x-csrftoken": "{token}"
+        },
+        "form": {
+          "email": "{email}",
+          "first_name": "",
+          "opt_into_one_tap": "false"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "regex": [
+            "email_is_taken"
+          ]
+        },
+        {
+          "regex": [
+            "email_sharing_limit"
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_not_contains": [
+            "email_is_taken",
+            "email_sharing_limit"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Last.fm",
+    "domain": "last.fm",
+    "strategy": "register",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://www.last.fm/join",
+        "capture": [
+          {
+            "var": "token",
+            "cookie": "csrftoken"
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "url": "https://www.last.fm/join/partial/validate",
+        "headers": {
+          "Referer": "https://www.last.fm/join",
+          "X-Requested-With": "XMLHttpRequest",
+          "Cookie": "csrftoken={token}"
+        },
+        "form": {
+          "csrfmiddlewaretoken": "{token}",
+          "userName": "",
+          "email": "{email}"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "body_contains": [
+            "already registered to another account"
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_not_contains": [
+            "already registered to another account"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "LastPass",
+    "domain": "lastpass.com",
+    "strategy": "register",
+    "method": "GET",
+    "url": "https://lastpass.com/create_account.php",
+    "headers": {
+      "Referer": "https://lastpass.com/",
+      "X-Requested-With": "XMLHttpRequest"
+    },
+    "params": {
+      "check": "avail",
+      "skipcontent": "1",
+      "mistype": "1",
+      "username": "{email}"
+    },
+    "match": {
+      "exists": [
+        {
+          "regex": [
+            "^no$"
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "regex": [
+            "^(?:ok|emailinvalid)$"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Myspace",
+    "domain": "myspace.com",
+    "strategy": "register",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://myspace.com/signup/email",
+        "capture": [
+          {
+            "var": "hash",
+            "regex": "<input name=\"csrf\" type=\"hidden\" value=\"([^\"]*)\"",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "url": "https://myspace.com/ajax/account/validateemail",
+        "headers": {
+          "Hash": "{hash}",
+          "X-Requested-With": "XMLHttpRequest",
+          "Referer": "https://myspace.com/signup/email",
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "Origin": "https://myspace.com"
+        },
+        "form": {
+          "email": "{email}"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "body_contains": [
+            "This email address was already used to create an account."
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_not_contains": [
+            "This email address was already used to create an account."
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Nike",
+    "domain": "nike.com",
+    "strategy": "register",
+    "method": "POST",
+    "url": "https://unite.nike.com/account/email/v1",
+    "headers": {
+      "Content-Type": "text/plain;charset=UTF-8",
+      "Origin": "https://www.nike.com",
+      "Referer": "https://www.nike.com/"
+    },
+    "params": {
+      "appVersion": "831",
+      "experienceVersion": "831",
+      "uxid": "com.nike.commerce.nikedotcom.web",
+      "locale": "en_US",
+      "backendEnvironment": "identity",
+      "browser": "",
+      "mobile": "false",
+      "native": "false",
+      "visit": "1"
+    },
+    "json": {
+      "emailAddress": "{email}"
+    },
+    "match": {
+      "exists": [
+        {
+          "status": [
+            409
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "status": [
+            204
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Office 365",
+    "domain": "office365.com",
+    "strategy": "other",
+    "method": "GET",
+    "url": "https://outlook.office365.com/autodiscover/autodiscover.json/v1.0/{email}?Protocol=Autodiscoverv1",
+    "headers": {
+      "User-Agent": "Microsoft Office/16.0 (Windows NT 10.0; Microsoft Outlook 16.0.12026; Pro)",
+      "Accept": "application/json"
+    },
+    "match": {
+      "exists": [
+        {
+          "status": [
+            200
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "status": [
+            404
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Patreon",
+    "domain": "patreon.com",
+    "strategy": "login",
+    "method": "POST",
+    "url": "https://www.patreon.com/api/email/available",
+    "headers": {
+      "Content-Type": "application/vnd.api+json",
+      "Origin": "https://www.patreon.com"
+    },
+    "params": {
+      "json-api-version": "1.0",
+      "include": "[]"
+    },
+    "json": {
+      "data": {
+        "attributes": {
+          "email": "{email}"
+        },
+        "relationships": {}
+      }
+    },
+    "match": {
+      "exists": [
+        {
+          "json": {
+            "key": "data.is_available",
+            "value": false
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "json": {
+            "key": "data.is_available",
+            "value": true
+          }
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Pinterest",
+    "domain": "pinterest.com",
+    "strategy": "register",
+    "method": "GET",
+    "url": "https://www.pinterest.com/_ngjs/resource/EmailExistsResource/get/",
+    "params": {
+      "source_url": "/",
+      "data": "{\"options\": {\"email\": \"{email}\"}, \"context\": {}}"
+    },
+    "match": {
+      "exists": [
+        {
+          "json": {
+            "key": "resource_response.data",
+            "value": true
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "json": {
+            "key": "resource_response.data",
+            "value": false
+          }
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Plurk",
+    "domain": "plurk.com",
+    "strategy": "register",
+    "method": "POST",
+    "url": "https://www.plurk.com/Users/isEmailFound",
+    "headers": {
+      "X-Requested-With": "XMLHttpRequest",
+      "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+      "Origin": "https://www.plurk.com"
+    },
+    "form": {
+      "email": "{email}"
+    },
+    "match": {
+      "exists": [
+        {
+          "regex": [
+            "^true$"
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "regex": [
+            "^false$"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Quora",
+    "domain": "quora.com",
+    "strategy": "register",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://fr.quora.com",
+        "capture": [
+          {
+            "var": "formkey",
+            "regex": "formkey\": \"([^\"]+)\"",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "url": "https://fr.quora.com/webnode2/server_call_POST",
+        "headers": {
+          "Accept": "application/json, text/javascript, */*; q=0.01",
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "X-Requested-With": "XMLHttpRequest",
+          "Origin": "https://fr.quora.com"
+        },
+        "form": {
+          "json": "{\"args\":[],\"kwargs\":{\"value\":\"{email}\"}}",
+          "formkey": "{formkey}",
+          "__hmac": "0XXXXXXxxXDxX",
+          "__method": "validate"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "body_contains": [
+            "Un compte a"
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_not_contains": [
+            "Un compte a"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Replit",
+    "domain": "replit.com",
+    "strategy": "register",
+    "method": "POST",
+    "url": "https://replit.com/data/user/exists",
+    "headers": {
+      "Accept": "application/json",
+      "content-type": "application/json",
+      "x-requested-with": "XMLHttpRequest",
+      "Origin": "https://replit.com"
+    },
+    "json": {
+      "email": "{email}"
+    },
+    "match": {
+      "exists": [
+        {
+          "json": {
+            "key": "exists",
+            "value": true
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "json": {
+            "key": "exists",
+            "value": false
+          }
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Samsung",
+    "domain": "samsung.com",
+    "strategy": "password recovery",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://account.samsung.com/accounts/v1/Samsung_com_EN/signUp",
+        "headers": {
+          "Referer": "https://account.samsung.com/accounts/v1/Samsung_com_EN/signUp",
+          "Origin": "https://account.samsung.com"
+        },
+        "capture": [
+          {
+            "var": "jsessionid",
+            "regex": "sJSESSIONID[^\"]*\"([^\"]+)\"",
+            "group": 1
+          },
+          {
+            "var": "csrf",
+            "regex": "\\{'token' : '([^']+)'",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "url": "https://account.samsung.com/accounts/v1/Samsung_com_EN/signUpCheckEmailIDProc",
+        "headers": {
+          "X-CSRF-TOKEN": "{csrf}",
+          "Cookie": "EUAWSIAMSESSIONID={jsessionid}",
+          "Content-Type": "application/json; charset=UTF-8",
+          "Origin": "https://account.samsung.com",
+          "Referer": "https://account.samsung.com/accounts/v1/Samsung_com_EN/signUp"
+        },
+        "params": {
+          "v": "1234"
+        },
+        "json": {
+          "emailID": "{email}"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "regex": [
+            "^(?![\\s\\S]*INAPPROPRIATE_CHARACTERS)(?![\\s\\S]*accounts aren't supported\\.)[\\s\\S]*\"rtnCd\""
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_contains": [
+            "INAPPROPRIATE_CHARACTERS",
+            "accounts aren't supported."
+          ]
+        },
+        {
+          "body_not_contains": [
+            "rtnCd"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Smule",
+    "domain": "smule.com",
+    "strategy": "register",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://www.smule.com/user/check_email",
+        "capture": [
+          {
+            "var": "csrf_token",
+            "regex": "authenticity_token\" name=\"csrf-param\" />\\s*<meta content=\"([^\"]+)\"",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "url": "https://www.smule.com/user/check_email",
+        "headers": {
+          "X-CSRF-Token": "{csrf_token}",
+          "Content-Type": "application/x-www-form-urlencoded",
+          "Origin": "https://www.smule.com"
+        },
+        "form": {
+          "email": "{email}"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "json": {
+            "key": "email",
+            "value": true
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "json": {
+            "key": "email",
+            "value": false
+          }
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Snapchat",
+    "domain": "snapchat.com",
+    "strategy": "login",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://accounts.snapchat.com",
+        "capture": [
+          {
+            "var": "xsrf",
+            "regex": "data-xsrf=\"([^\"]*)\"",
+            "group": 1
+          },
+          {
+            "var": "web_client_id",
+            "regex": "data-web-client-id=\"([^\"]*)\"",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "url": "https://accounts.snapchat.com/accounts/merlin/login",
+        "headers": {
+          "X-XSRF-TOKEN": "{xsrf}",
+          "Cookie": "xsrf_token={xsrf}; web_client_id={web_client_id}",
+          "Content-Type": "application/json"
+        },
+        "json": {
+          "email": "{email}",
+          "app": "BITMOJI_APP"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "json": {
+            "key": "hasSnapchat",
+            "value": true
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "status": [
+            204
+          ]
+        },
+        {
+          "json": {
+            "key": "hasSnapchat",
+            "value": false
+          }
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "SoundCloud",
+    "domain": "soundcloud.com",
+    "strategy": "register",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://soundcloud.com/octobersveryown",
+        "headers": {
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+        },
+        "capture": [
+          {
+            "var": "clientId",
+            "regex": "\"clientId\"\\s*:\\s*\"([^\"]+)\"",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "url": "https://api-auth.soundcloud.com/web-auth/identifier",
+        "params": {
+          "q": "{email}",
+          "client_id": "{clientId}"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "json": {
+            "key": "status",
+            "value": "in_use"
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "json": {
+            "key": "status",
+            "value": "available"
+          }
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Spotify",
+    "domain": "spotify.com",
+    "strategy": "register",
+    "method": "GET",
+    "url": "https://spclient.wg.spotify.com/signup/public/v1/account",
+    "headers": {
+      "Accept": "application/json, text/plain, */*"
+    },
+    "params": {
+      "validate": "1",
+      "email": "{email}"
+    },
+    "match": {
+      "exists": [
+        {
+          "json": {
+            "key": "status",
+            "value": 20
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "json": {
+            "key": "status",
+            "value": 1
+          }
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Strava",
+    "domain": "strava.com",
+    "strategy": "register",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://www.strava.com/register/free?cta=sign-up&element=button&source=website_show",
+        "capture": [
+          {
+            "var": "token",
+            "regex": "<meta name=\"csrf-token\" content=\"([^\"]*)\"",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "url": "https://www.strava.com/athletes/email_unique",
+        "headers": {
+          "X-CSRF-Token": "{token}",
+          "X-Requested-With": "XMLHttpRequest",
+          "Referer": "https://www.strava.com/register/free"
+        },
+        "params": {
+          "email": "{email}"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "regex": [
+            "^false$"
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "regex": [
+            "^true$"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Tellonym",
+    "domain": "tellonym.me",
+    "strategy": "register",
+    "method": "GET",
+    "url": "https://api.tellonym.me/accounts/check",
+    "headers": {
+      "Accept": "application/json",
+      "tellonym-client": "web:0.51.1",
+      "content-type": "application/json;charset=utf-8",
+      "Origin": "https://tellonym.me",
+      "Referer": "https://tellonym.me/register/email"
+    },
+    "params": {
+      "email": "{email}",
+      "errorMessage": "",
+      "limit": "25"
+    },
+    "match": {
+      "exists": [
+        {
+          "body_contains": [
+            "EMAIL_ALREADY_IN_USE"
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_not_contains": [
+            "EMAIL_ALREADY_IN_USE"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Tumblr",
+    "domain": "tumblr.com",
+    "strategy": "register",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://www.tumblr.com/",
+        "capture": [
+          {
+            "var": "bearer",
+            "regex": "API_TOKEN\":\"([^\"]*)",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "url": "https://www.tumblr.com/api/v2/radar?limit=15",
+        "headers": {
+          "Accept": "application/json;format=camelcase",
+          "Authorization": "Bearer {bearer}",
+          "Referer": "https://www.tumblr.com/"
+        }
+      },
+      {
+        "method": "POST",
+        "url": "https://www.tumblr.com/api/v2/register/account/validate",
+        "headers": {
+          "Accept": "application/json;format=camelcase",
+          "Authorization": "Bearer {bearer}",
+          "X-CSRF": "{csrf}",
+          "Content-Type": "application/json; charset=utf8",
+          "Origin": "https://www.tumblr.com",
+          "Referer": "https://www.tumblr.com/register?source=login_register_center"
+        },
+        "json": {
+          "password": "abc",
+          "email": "{email}",
+          "tumblelog": "osintuser"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "json": {
+            "key": "response.code",
+            "value": 2
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "json": {
+            "key": "response.code",
+            "value": 1030
+          }
+        }
+      ]
+    },
+    "enabled": false,
+    "note": "CSRF token comes from an X-Csrf response header of step 2; schema capture only supports body/cookie."
+  },
+  {
+    "name": "Twitter",
+    "domain": "twitter.com",
+    "strategy": "register",
+    "method": "GET",
+    "url": "https://api.twitter.com/i/users/email_available.json",
+    "params": {
+      "email": "{email}"
+    },
+    "match": {
+      "exists": [
+        {
+          "json": {
+            "key": "taken",
+            "value": true
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "json": {
+            "key": "taken",
+            "value": false
+          }
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Venmo",
+    "domain": "venmo.com",
+    "strategy": "register",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://venmo.com/signup/email",
+        "headers": {
+          "Accept": "application/json",
+          "Referer": "https://venmo.com/",
+          "Origin": "https://venmo.com"
+        },
+        "capture": [
+          {
+            "var": "v_id",
+            "regex": "v_id=([^;\\s]+)",
+            "group": 1
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "url": "https://venmo.com/api/v5/users",
+        "headers": {
+          "device-id": "{v_id}",
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "Origin": "https://venmo.com"
+        },
+        "json": {
+          "last_name": "e",
+          "first_name": "z",
+          "email": "{email}",
+          "password": "",
+          "phone": "1",
+          "client_id": 10
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "body_contains": [
+            "That email is already registered in our system."
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_not_contains": [
+            "That email is already registered in our system."
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "VSCO",
+    "domain": "vsco.co",
+    "strategy": "register",
+    "method": "GET",
+    "url": "https://api.vsco.co/2.0/users/email",
+    "headers": {
+      "Authorization": "Bearer 7356455548d0a1d886db010883388d08be84d0c9"
+    },
+    "params": {
+      "email": "{email}"
+    },
+    "match": {
+      "exists": [
+        {
+          "json": {
+            "key": "email_status",
+            "value": "has_account"
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "json": {
+            "key": "email_status",
+            "value": "no_account"
+          }
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "Wattpad",
+    "domain": "wattpad.com",
+    "strategy": "register",
+    "steps": [
+      {
+        "method": "GET",
+        "url": "https://www.wattpad.com"
+      },
+      {
+        "method": "GET",
+        "url": "https://www.wattpad.com/api/v3/users/validate",
+        "headers": {
+          "X-Requested-With": "XMLHttpRequest",
+          "Referer": "https://www.wattpad.com/"
+        },
+        "params": {
+          "email": "{email}"
+        }
+      }
+    ],
+    "match": {
+      "exists": [
+        {
+          "body_contains": [
+            "Cette adresse"
+          ]
+        }
+      ],
+      "not_exists": [
+        {
+          "body_not_contains": [
+            "Cette adresse"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  },
+  {
+    "name": "WordPress",
+    "domain": "wordpress.com",
+    "strategy": "login",
+    "method": "GET",
+    "url": "https://public-api.wordpress.com/rest/v1.1/users/{email}/auth-options",
+    "headers": {
+      "Accept": "*/*"
+    },
+    "params": {
+      "http_envelope": "1",
+      "locale": "en"
+    },
+    "match": {
+      "exists": [
+        {
+          "json": {
+            "key": "body.email_verified",
+            "value": true
+          }
+        }
+      ],
+      "not_exists": [
+        {
+          "json": {
+            "key": "body.email_verified",
+            "value": false
+          }
+        },
+        {
+          "body_contains": [
+            "unknown_user"
+          ]
+        },
+        {
+          "body_contains": [
+            "email_login_not_allowed"
+          ]
+        }
+      ]
+    },
+    "enabled": true
+  }
+]

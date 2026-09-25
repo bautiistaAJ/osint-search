@@ -12,6 +12,7 @@ from services.osint_services import (
     run_phoneinfoga, run_ghunt, run_sublist3r,
     run_theharvester, run_dns, run_github
 )
+from services.email_checker import check_email_native, merge_results
 
 app = FastAPI(title="OSINT Search ES", version="2.0.0")
 
@@ -146,7 +147,10 @@ async def search_username_route(q: str):
 
 @app.get("/api/search/email")
 async def search_email(q: str):
-    results = await query_holehe(q)
+    native_results, holehe_results = await asyncio.gather(
+        check_email_native(q), query_holehe(q)
+    )
+    results = merge_results(native_results, holehe_results)
     breach_data = await query_hibp(q)
     combined = {
         "query": q,

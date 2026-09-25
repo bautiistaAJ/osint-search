@@ -3,6 +3,24 @@ const props = defineProps({
   results: { type: Array, default: () => [] },
   breachData: { type: Object, default: null }
 })
+
+function confBadge(r) {
+  if (r.confidence === 'low') return { label: 'SIN CONFIAR', cls: 'chip-low' }
+  if (r.method === 'both') return { label: 'VERIFICADO', cls: 'chip-verified' }
+  if (r.method === 'native') return { label: 'NATIVE', cls: 'chip-native' }
+  if (r.method === 'holehe') return { label: 'HOLEHE', cls: 'chip-holehe' }
+  return null
+}
+
+function badgeTitle(r) {
+  const map = {
+    low: 'Detección no confiable (falló el canary check) — verificar manualmente',
+    both: 'Confirmado por el checker nativo y por holehe',
+    native: 'Detectado por el checker nativo',
+    holehe: 'Detectado solo por holehe'
+  }
+  return map[r.confidence === 'low' ? 'low' : r.method] || ''
+}
 </script>
 
 <template>
@@ -13,6 +31,7 @@ const props = defineProps({
         <div class="card-glow"></div>
         <div class="card-body">
           <strong>{{ r.site || 'Unknown' }}</strong>
+          <span v-if="confBadge(r)" class="conf-badge" :class="confBadge(r).cls" :title="badgeTitle(r)">{{ confBadge(r).label }}</span>
           <a v-if="r.url" class="card-link" :href="r.url" target="_blank" rel="noopener noreferrer">ABRIR ↗</a>
           <span class="status-found" v-if="r.found">FOUND</span>
         </div>
@@ -42,6 +61,19 @@ const props = defineProps({
 </template>
 
 <style scoped>
+.conf-badge {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 1px;
+  padding: 2px 6px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.chip-verified { color: var(--cyan); border-color: var(--cyan); background: #00ffff11; }
+.chip-native { color: var(--green); border-color: var(--green); background: #00ff0011; }
+.chip-holehe { color: var(--text-secondary); border-color: var(--border); background: var(--bg-primary); }
+.chip-low { color: #fbbf24; border-color: #fbbf24; background: #fbbf2411; }
+
 .card-link {
   font-size: 0.7rem;
   color: var(--cyan);
