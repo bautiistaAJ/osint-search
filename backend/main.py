@@ -73,19 +73,38 @@ def run_whatsmyname(username: str) -> list:
             continue
     return results
 
-async def query_holehe(email: str) -> list:
-    output = await asyncio.to_thread(run_cmd, ["holehe", email])
+ANSI_RE = re.compile(r'\x1b\[[0-9;?]*[A-Za-z]')
+
+def parse_holehe_output(output: str) -> list:
     results = []
-    for line in output.splitlines():
-        line = line.strip()
-        if not line or line.startswith("Checking") or line.startswith("Holehe") or line.startswith("Usage"):
+    seen = set()
+    for raw in output.splitlines():
+        line = ANSI_RE.sub('', raw).strip()
+        if not line:
             continue
-        if "❌" in line:
+        if line.startswith('***') or '@' in line and '[+]' not in line:
             continue
-        site = line.split("→")[-1].strip() if "→" in line else line.split(" ")[0].strip()
-        if site:
-            results.append({"site": site, "found": True})
+        if 'Email used' in line or 'Email not used' in line:
+            continue
+        if line.startswith(('Twitter :', 'Github :', 'For BTC', 'Holehe', 'Usage')):
+            continue
+        if 'websites checked' in line:
+            continue
+        m = re.match(r'\[\+\]\s+(\S+)', line)
+        if not m:
+            continue
+        domain = m.group(1)
+        if domain in seen:
+            continue
+        seen.add(domain)
+        results.append({"site": domain, "url": f"https://{domain}", "found": True})
     return results
+
+async def query_holehe(email: str) -> list:
+    output = await asyncio.to_thread(
+        run_cmd, ["holehe", "--only-used", "--no-color", "--no-clear", email]
+    )
+    return parse_holehe_output(output)
 
 async def query_hibp(email: str) -> dict:
     return {"breaches": [], "found": False, "checked": False}

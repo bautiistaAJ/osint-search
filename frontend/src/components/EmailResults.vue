@@ -13,6 +13,7 @@ const props = defineProps({
         <div class="card-glow"></div>
         <div class="card-body">
           <strong>{{ r.site || 'Unknown' }}</strong>
+          <a v-if="r.url" class="card-link" :href="r.url" target="_blank" rel="noopener noreferrer">ABRIR ↗</a>
           <span class="status-found" v-if="r.found">FOUND</span>
         </div>
       </div>
@@ -41,4 +42,17 @@ const props = defineProps({
 </template>
 
 <style scoped>
+.card-link {
+  font-size: 0.7rem;
+  color: var(--cyan);
+  text-decoration: none;
+  letter-spacing: 1px;
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  transition: all 0.15s;
+}
+.card-link:hover {
+  border-color: var(--cyan);
+  box-shadow: var(--glow-cyan);
+}
 </style>
